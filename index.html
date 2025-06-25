@@ -1,1 +1,177 @@
-Hello World
+<html>
+<head>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+    svg { font: 10px sans-serif; }
+    circle { fill: steelblue; }
+    path.line { fill: none; stroke: gray; stroke-width: 2; opacity: 0.3; }
+    path.history { fill: none; stroke: red; stroke-width: 2; opacity: 0.5; }
+    circle.animated { fill: red; }
+    text.counter { font-size: 16px; fill: black; font-weight: bold; }
+    #controls { margin-top: 10px; }
+  </style>
+</head>
+<body>
+<svg width="600" height="450"></svg>
+<div id="controls">
+  <button id="pauseBtn">Pause</button>
+  <label>Speed: <input type="range" id="speedSlider" min="1" max="10" value="5"></label>
+</div>
+<script>
+  var width = 600, height = 450, margin = 50;
+  const ambientP = 14.7;
+
+  function estimateTout(mFuel, fuelAirRatio, Tin, LHV = 18500, Cp = 0.24) {
+    const mAir = mFuel / fuelAirRatio;
+    const mTotal = mFuel + mAir;
+    const Qfuel = mFuel * LHV;
+    return Tin + Qfuel / (mTotal * Cp);
+  }
+
+  function calcVolume(T, P) {
+    return T / P;
+  }
+
+  function generateExpCurvePoints(p0, p1, numPoints=50) {
+    let points = [];
+    let x0 = p0.x, y0 = p0.y;
+    let x1 = p1.x, y1 = p1.y;
+    if (y0 <= 0) y0 = 0.001;
+    if (y1 <= 0) y1 = 0.001;
+    let b = Math.pow(y1 / y0, 1 / (numPoints - 1));
+    for (let i = 0; i < numPoints; i++) {
+      let t = i / (numPoints - 1);
+      let x = x0 + t * (x1 - x0);
+      let y = y0 * Math.pow(b, i);
+      points.push({x: x, y: y});
+    }
+    return points;
+  }
+
+  d3.csv("brayton_cycle.csv").then(function(data) {
+    let V_all = [], P_all = [];
+    data.forEach(d => {
+      const t2 = +d.t2, p2 = +d.p2, t30 = +d.t30, p30 = +d.p30, t50 = +d.t50, epr = +d.epr, ps30 = +d.ps30, phi = +d.phi, farB = +d.farB;
+      const fuelFlow = ps30 * phi;
+      const combustorTout = estimateTout(fuelFlow, farB, t30);
+      V_all.push(calcVolume(t2, p2), calcVolume(t30, p30), calcVolume(t50, p2 * epr), calcVolume(t50, ambientP));
+      P_all.push(p2, p30, p2 * epr, ambientP);
+    });
+
+    var x = d3.scaleLinear().domain(d3.extent(V_all)).nice().range([margin, width - margin]);
+    var y = d3.scaleLinear().domain(d3.extent(P_all)).nice().range([height - margin, margin]);
+
+    var svg = d3.select("svg");
+    svg.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(x));
+    svg.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(y));
+
+    var lineGenerator = d3.line().x(d => x(d.V)).y(d => y(d.P));
+
+    function computePathPoints(d) {
+      const t2 = +d.t2, p2 = +d.p2, t30 = +d.t30, p30 = +d.p30, t50 = +d.t50, epr = +d.epr, ps30 = +d.ps30, phi = +d.phi, farB = +d.farB;
+      const fuelFlow = ps30 * phi;
+      const combustorTout = estimateTout(fuelFlow, farB, t30);
+
+      const inlet = {V: calcVolume(t2, p2), P: p2};
+      const hpc = {V: calcVolume(t30, p30), P: p30};
+      const combustIn = {V: calcVolume(t30, p30), P: p30};
+      const combustOut = {V: calcVolume(combustorTout, p30), P: p30};
+      const lpt = {V: calcVolume(t50, p2 * epr), P: p2 * epr};
+      const nozzle = {V: calcVolume(t50, ambientP), P: ambientP};
+
+      let seg1 = generateExpCurvePoints({x: inlet.V, y: inlet.P}, {x: hpc.V, y: hpc.P}, 50);
+      seg1.forEach(p => { p.V = p.x; p.P = p.y; });
+
+      let seg2 = [hpc, combustIn, combustOut];
+
+      let seg3 = generateExpCurvePoints({x: combustOut.V, y: combustOut.P}, {x: lpt.V, y: lpt.P}, 50);
+      seg3.forEach(p => { p.V = p.x; p.P = p.y; });
+
+      let seg4 = generateExpCurvePoints({x: lpt.V, y: lpt.P}, {x: nozzle.V, y: nozzle.P}, 50);
+      seg4.forEach(p => { p.V = p.x; p.P = p.y; });
+
+      let seg5 = [nozzle, inlet];
+
+      return [...seg1, ...seg2, ...seg3, ...seg4, ...seg5];
+    }
+
+    // Draw first path as silhouette
+    let firstPath = computePathPoints(data[0]);
+    svg.append("path")
+      .datum(firstPath)
+      .attr("class", "line")
+      .attr("d", lineGenerator);
+
+    let animatedPoint = svg.append("circle")
+      .attr("r", 5)
+      .attr("class", "animated");
+
+    let counterText = svg.append("text")
+      .attr("class", "counter")
+      .attr("x", width - margin - 100)
+      .attr("y", margin)
+      .text("Cycle: 1");
+
+    let rowIndex = 0;
+    let pointIndex = 0;
+    let currentPath = computePathPoints(data[rowIndex]);
+    let isPaused = false;
+    let speedupFactor = 1;
+    let historyPaths = [];
+
+    document.getElementById("pauseBtn").onclick = function() {
+      isPaused = !isPaused;
+      this.textContent = isPaused ? "Play" : "Pause";
+    };
+
+    document.getElementById("speedSlider").oninput = function() {
+      speedupFactor = +this.value;
+    };
+
+    function animate() {
+      if (!isPaused) {
+        for (let s = 0; s < speedupFactor; s++) {
+          if (pointIndex >= currentPath.length) {
+            let hist = svg.append("path")
+              .datum(currentPath)
+              .attr("class", "history")
+              .attr("d", lineGenerator)
+              .style("opacity", 0.5);
+
+            historyPaths.push(hist);
+
+            hist.transition()
+              .duration(2000)
+              .style("opacity", 0)
+              .remove();
+
+            rowIndex++;
+            if (rowIndex >= data.length) {
+              // Draw the last path clearly and stop
+              svg.append("path")
+                .datum(currentPath)
+                .attr("class", "history")
+                .attr("d", lineGenerator)
+                .style("opacity", 1)
+                .style("stroke", "red");
+              return;
+            }
+
+            currentPath = computePathPoints(data[rowIndex]);
+            pointIndex = 0;
+            counterText.text(`Cycle: ${rowIndex + 1}`);
+          }
+
+          let pt = currentPath[pointIndex];
+          animatedPoint.attr("cx", x(pt.V)).attr("cy", y(pt.P));
+          pointIndex++;
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  });
+</script>
+</body>
+</html>
