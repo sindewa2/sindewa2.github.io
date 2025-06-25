@@ -1,5 +1,6 @@
 const width = 400, height = 400, margin = 50, ambientP = 14.7;
 
+//function to estimate combustor outlet temperature
 function estimateTout(mFuel, fuelAirRatio, Tin, LHV = 18500, Cp = 0.24) {
   const mAir = mFuel / fuelAirRatio;
   const mTotal = mFuel + mAir;
@@ -7,10 +8,20 @@ function estimateTout(mFuel, fuelAirRatio, Tin, LHV = 18500, Cp = 0.24) {
   return Tin + Qfuel / (mTotal * Cp);
 }
 
+//function to estimate compression efficiency from fan inlet to HPC outlet
+function estimateEtaComp(p2, t2, p30, t30, gamma = 1.4){
+    const ctr = t30 / t2;
+    const cpr = p30 / p2;
+    return (Math.pow(cpr,(gamma - 1) / gamma) - 1) / ctr;
+
+}
+
+//function to calculate volume proxy for P-v diagram
 function calcVolume(T, P) {
   return T / P;
 }
 
+//function to create exponential paths for P-v and T-s diagrams
 function expPath(p0, p1, num = 30) {
   let points = [];
   let b = Math.pow(p1.P / p0.P, 1 / (num - 1));
@@ -26,6 +37,7 @@ function expPath(p0, p1, num = 30) {
   return points;
 }
 
+//possibly redundant function? need to look.
 function expPathTS(p0, p1, num = 30) {
   let points = [];
   let b = Math.pow(p1.T / p0.T, 1 / (num - 1));
@@ -41,6 +53,7 @@ function expPathTS(p0, p1, num = 30) {
   return points;
 }
 
+//function to connect all the pathes together in the P-v and T-s diagrams
 function buildPath(d) {
   const t2 = +d.t2, p2 = +d.p2, t30 = +d.t30, p30 = +d.p30;
   const t50 = +d.t50, epr = +d.epr, ps30 = +d.ps30, phi = +d.phi, farB = +d.farB;
@@ -65,29 +78,39 @@ function buildPath(d) {
   );
 }
 
+//load the brayton_cycle.csv and begin calculations. Do we need to incorporate async / await protocol?
 d3.csv("brayton_cycle.csv").then(function(data) {
-    let V_all = [], P_all = [], T_all = [];
+    let V_all = [], P_all = [], T_all = []; etaComp_all = []; //initialize arrays for V, P, T, and eta
 
-  data.forEach(d => {
+  data.forEach(d => { //perform calculations for each row
     const t2 = +d.t2, p2 = +d.p2, t30 = +d.t30, p30 = +d.p30;
     const t50 = +d.t50, epr = +d.epr, ps30 = +d.ps30, phi = +d.phi, farB = +d.farB;
     const fuelFlow = ps30 * phi;
     const combustorTout = estimateTout(fuelFlow, farB, t30);
+    const etaComp = estimateEtaComp(p2, t2, p30, t30);
 
     V_all.push(calcVolume(t2, p2), calcVolume(t30, p30), calcVolume(combustorTout, p30), calcVolume(t50, ambientP));
     P_all.push(p2, p30, ambientP, p2 * epr);
     T_all.push(t2, t30, combustorTout, t50);
+    etaComp_all.push(etaComp);
   });
 
+  //set x and y scales for P-v diagram
   const xPV = d3.scaleLinear().domain(d3.extent(V_all)).range([margin, width - margin]);
   const yPV = d3.scaleLinear().domain(d3.extent(P_all)).range([height - margin, margin]);
 
+  //set x and y scales for T-s diagram
   const xTS = d3.scaleLinear().domain([0.5, 2.5]).range([margin, width - margin]);
   const yTS = d3.scaleLinear().domain(d3.extent(T_all)).range([height - margin, margin]);
 
+  //set x and y scales for eta diagram
+  const xEC = d3.scaleLinear().domain(d3.extent(V_all)).range([margin, width - margin]);
+
+  //save the selection function for the charts in a variable for brevity in following code
   const svgPV = d3.select("#pvChart");
   const svgTS = d3.select("#tsChart");
 
+  //append 
   svgPV.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xPV));
   svgPV.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yPV));
 
