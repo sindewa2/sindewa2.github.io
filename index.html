@@ -2,13 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>My Visualization Landing Page</title>
+  <title>Turbofan Engine Degradation</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <h1>Welcome to My Visualizations</h1>
-  <ul>
-    <li><a href="brayton.html">Brayton Cycle Visualization</a></li>
-    <!-- add more scenes as you build -->
-  </ul>
+  <div id="engine-diagram"></div>
+  <div id="engine-tooltip"></div>
+
+  <!-- Load D3 and your script -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="jss/engineDiagram.js"></script>
 </body>
 </html>
