@@ -17,3 +17,8 @@ body {
   white-space: nowrap;
   display: none; /* Start hidden */
 }
+
+#engine-diagram {
+  display: block;
+  overflow: visible; /* important for D3 sometimes */
+}

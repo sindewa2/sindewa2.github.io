@@ -6,12 +6,18 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <h1>Welcome to My Visualizations</h1>
-  <div id="engine-diagram"></div>
-  <div id="engine-tooltip"></div>
+  <h1>Turbofan Engine Health Management</h1>
+  <h2>Engine Operation</h2>
+  
+  <div id="main-layout" style="display: flex; align-items: center; gap: 40px;">
+    <svg id="engine-diagram"></svg>
+    <div id="throttle-container"></div>
+  </div>
 
-  <!-- Load D3 and your script -->
+  <div id="engine-tooltip"></div>
+  <!-- Load scripts -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="jss/engineDiagram.js"></script>
 </body>
+
 </html>

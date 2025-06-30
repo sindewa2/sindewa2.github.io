@@ -1,6 +1,5 @@
-const svg = d3.select("body")
-  .append("svg")
-  .attr("width", 900)
+const svg = d3.select("#engine-diagram")
+  .attr("width", 460)
   .attr("height", 400);
 
 const centerY = 200;
@@ -151,7 +150,7 @@ n1Group.append("line")
 n1Group.append("path")
   .attr("d", "M 378,185 L 450,200 L 380,215 Z")
   .attr("fill", "#444")        // fill the enclosed area
-  .attr("stroke", "#none")      // optional stroke for visibility
+  .attr("stroke", "none")      // optional stroke for visibility
   .attr("stroke-width", 2);
 
 // Function to create blade paths given centerX and sizes
@@ -386,16 +385,34 @@ n2Group.append("line")
   .attr("stroke", "#444")
   .attr("stroke-width", 30);
 
+// Draw combustor section
+engineGroup.append("ellipse")
+  .attr("cx", 290)           // horizontal center of combustor section
+  .attr("cy", centerY - 28)  // above center line
+  .attr("rx", 35)            // horizontal radius
+  .attr("ry", 15)            // vertical radius
+  .attr("fill", "red")
+  .attr("opacity", 0.7);
+
+engineGroup.append("ellipse")
+  .attr("cx", 290)           // horizontal center of combustor section
+  .attr("cy", centerY + 28)  // below center line
+  .attr("rx", 35)
+  .attr("ry", 15)
+  .attr("fill", "red")
+  .attr("opacity", 0.7);
+
 //define a tooltip group
 const tooltip = d3.select("#engine-tooltip");
 
 const regions = [
-  { name: "Fan",        x: 75,  width: 25 },
-  { name: "LPC",        x: 105, width: 75 },
-  { name: "HPC",        x: 185, width: 55 },
-  { name: "HPT",        x: 330, width: 15 },
-  { name: "LPT",        x: 350, width: 30 },
-  { name: "Nozzle",     x: 380, width: 70 }
+  { name: "Fan",                         x: 75,  width: 25 },
+  { name: "Low Pressure Compressor",     x: 105, width: 75 },
+  { name: "High Pressure Compressor",    x: 185, width: 55 },
+  { name: "Combustor",                   x: 255, width: 70 },
+  { name: "High Pressure Turbine",       x: 330, width: 15 },
+  { name: "Low Pressure Turbine",        x: 350, width: 30 },
+  { name: "Exhaust Nozzle",              x: 380, width: 70 }
 ];
 
 // Create a group to hold interaction hitboxes
@@ -426,3 +443,165 @@ regions.forEach(region => {
         .style("opacity", 0);
     });
 });
+
+// Airflow groups
+const airflowGroup = engineGroup.append("g").attr("id", "airflow-group");
+
+const bypassPathTop1 = airflowGroup.append("path")
+  .attr("d", `M40,${centerY - 70} C200,${centerY - 90} 250,${centerY - 90} 300,${centerY - 80}`)
+  .attr("fill", "none")
+  .attr("stroke", "skyblue")
+  .attr("stroke-width", 4)
+  .attr("stroke-dasharray", "5,5")
+  .attr("opacity", 0);
+
+const bypassPathTop2 = airflowGroup.append("path")
+  .attr("d", `M40,${centerY - 60} C200,${centerY - 80} 250,${centerY - 80} 300,${centerY - 70}`)
+  .attr("fill", "none")
+  .attr("stroke", "skyblue")
+  .attr("stroke-width", 4)
+  .attr("stroke-dasharray", "5,5")
+  .attr("opacity", 0);
+
+const bypassPathBottom1 = airflowGroup.append("path")
+  .attr("d", `M40,${centerY + 70} C200,${centerY + 90} 250,${centerY + 90} 300,${centerY + 80}`)
+  .attr("fill", "none")
+  .attr("stroke", "skyblue")
+  .attr("stroke-width", 4)
+  .attr("stroke-dasharray", "5,5")
+  .attr("opacity", 0);
+
+const bypassPathBottom2 = airflowGroup.append("path")
+  .attr("d", `M40,${centerY + 60} C200,${centerY + 80} 250,${centerY + 80} 300,${centerY + 70}`)
+  .attr("fill", "none")
+  .attr("stroke", "skyblue")
+  .attr("stroke-width", 4)
+  .attr("stroke-dasharray", "5,5")
+  .attr("opacity", 0);
+
+
+const corePathTop = airflowGroup.append("path")
+  .attr("d", `M40,${centerY - 40} C220,${centerY - 15} 250,${centerY - 28} 300,${centerY - 30} L425,${centerY - 30}`)
+  .attr("fill", "none")
+  .attr("stroke", "deepskyblue")
+  .attr("stroke-width", 3)
+  .attr("stroke-dasharray", "4,4")
+  .attr("opacity", 0);
+
+const corePathBottom = airflowGroup.append("path")
+  .attr("d", `M40,${centerY + 40} C220,${centerY + 15} 250,${centerY + 28} 300,${centerY + 30} L425,${centerY + 30}`)
+  .attr("fill", "none")
+  .attr("stroke", "deepskyblue")
+  .attr("stroke-width", 3)
+  .attr("stroke-dasharray", "4,4")
+  .attr("opacity", 0);
+
+// Animate the dash offset
+function animateFlow(path) {
+  path.transition()
+    .duration(500)
+    .ease(d3.easeLinear)
+    .attrTween("stroke-dashoffset", () => d3.interpolate(10, 0))
+    .on("end", () => animateFlow(path));
+}
+
+const width = 120;
+const height = 200;
+
+const throttle = d3.select("#throttle-container")
+  .append("svg")
+  .attr("width", width)
+  .attr("height", height);
+
+// Background track
+throttle.append("rect")
+  .attr("x", width / 2 - 30)
+  .attr("y", 20)
+  .attr("width", 60)
+  .attr("height", height - 40)
+  .attr("fill", "#333")
+  .attr("rx", 8);
+
+// center of background track
+throttle.append("line")
+  .attr("x1", width / 2)   
+  .attr("y1", 20)
+  .attr("x2", width / 2)  
+  .attr("y2", height - 20)
+  .attr("stroke", "#444")
+  .attr("stroke-width", 2);
+
+// Left throttle knob
+const leftKnob = throttle.append("rect")
+  .attr("x", width / 2 - 31)
+  .attr("y", height - 60)
+  .attr("width", 30)
+  .attr("height", 20)
+  .attr("fill", "#bbb")
+  .attr("stroke", "#666")
+  .attr("cursor", "grab")
+  .attr("rx", 3);
+
+// Right throttle knob
+const rightKnob = throttle.append("rect")
+  .attr("x", width / 2 + 1)
+  .attr("y", height - 60)
+  .attr("width", 30)
+  .attr("height", 20)
+  .attr("fill", "#bbb")
+  .attr("stroke", "#666")
+  .attr("cursor", "grab")
+  .attr("rx", 3);
+
+// Label
+const valueText = throttle.append("text")
+  .attr("x", width / 2)
+  .attr("y", 15)
+  .attr("text-anchor", "middle")
+  .attr("fill", "#000")
+  .attr("font-size", "14px")
+  .text("Throttle: 0%");
+
+// Shared drag behavior (coupled)
+const drag = d3.drag()
+  .on("drag", function (event) {
+    let newY = Math.min(Math.max(event.y, 20), height - 40);
+
+    // Move both knobs together
+    leftKnob.attr("y", newY);
+    rightKnob.attr("y", newY);
+
+    const percent = Math.round(100 * (1 - (newY - 20) / (height - 60)));
+    valueText.text(`Throttle: ${percent}%`);
+
+    updateThrottleVisualization(percent);
+  });
+
+leftKnob.call(drag);
+rightKnob.call(drag);
+
+// Throttle input listener
+function updateThrottleVisualization(val) {
+  if (val > 0) {
+    bypassPathTop1?.attr("opacity", Math.min(1, val / 50));
+    bypassPathTop2?.attr("opacity", Math.min(1, val / 50));
+    bypassPathBottom1?.attr("opacity", Math.min(1, val / 50));
+    bypassPathBottom2?.attr("opacity", Math.min(1, val / 50));
+    corePathTop?.attr("opacity", Math.min(1, (val - 30) / 50));
+    corePathBottom?.attr("opacity", Math.min(1, (val - 30) / 50));
+  } else {
+    bypassPathTop1?.attr("opacity", 0);
+    bypassPathTop2?.attr("opacity", 0);
+    bypassPathBottom1?.attr("opacity", 0);
+    bypassPathBottom2?.attr("opacity", 0);
+    corePathTop?.attr("opacity", 0);
+    corePathBottom?.attr("opacity", 0);
+  }
+}
+
+animateFlow(bypassPathTop1);
+animateFlow(bypassPathTop2);
+animateFlow(bypassPathBottom1);
+animateFlow(bypassPathBottom2);
+animateFlow(corePathTop);
+animateFlow(corePathBottom);
