@@ -2,13 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>My Visualization Landing Page</title>
+  <title>Turbofan Engine Degradation</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <h1>Welcome to My Visualizations</h1>
-  <ul>
-    <li><a href="brayton.html">Brayton Cycle Visualization</a></li>
-    <!-- add more scenes as you build -->
-  </ul>
+  <h1>Turbofan Engine Health Management</h1>
+  <h2>Engine Operation</h2>
+  
+  <div id="main-layout" style="display: flex; align-items: center; gap: 40px;">
+    <svg id="engine-diagram"></svg>
+    <div id="throttle-container"></div>
+  </div>
+
+  <div id="engine-tooltip"></div>
+  <!-- Load scripts -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="jss/engineDiagram.js"></script>
 </body>
+
 </html>
