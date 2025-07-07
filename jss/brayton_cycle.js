@@ -1,32 +1,13 @@
 const width = 400, height = 400, margin = 50, ambientP = 14.7;
 
-//function to estimate combustor outlet temperature
-function estimateTout(mFuel, fuelAirRatio, Tin, LHV = 18400, Cp = 0.4) {
-  const mAir = mFuel / fuelAirRatio;
-  const mTotal = mFuel + mAir;
-  const Qfuel = mFuel * LHV;
-  return Tin + Qfuel / (mTotal * Cp);
-}
+console.log("Script loaded!");
 
-//function to estimate compression efficiency from fan inlet to HPC outlet
-function estimateEtaComp(p2, t2, p30, t30, gamma = 1.39){ 
-    const ctr = t30 / t2;
-    const cpr = p30 / p2;
-    return (Math.pow(cpr,(gamma - 1) / gamma) - 1) / (ctr - 1);
-
-}
-
-//function to estimate turbine efficiency from combustor outlet to LPT outlet
-function estimateEtaTurb(p40,t40,p50,t50, gamma = 1.32){ 
-    const ttr = t50/t40;
-    const tpr = p50/p40; 
-    return (ttr - 1) / (Math.pow(tpr,(gamma - 1) / gamma) - 1);
-}
-
-//function to calculate volume proxy for P-v diagram
-function calcVolume(T, P) {
-  return T / P;
-}
+import {
+  estimateTout,
+  estimateEtaComp,
+  estimateEtaTurb,
+  calcVolume
+} from './brayton_calcs.js';
 
 //function to create exponential paths for P-v and T-s diagrams
 function expPath(p0, p1, num = 30) {
@@ -87,7 +68,8 @@ function buildPath(d) {
 
 //load the brayton_cycle.csv and begin calculations. Do we need to incorporate async / await protocol?
 d3.csv("brayton_cycle.csv").then(function(data) {
-    let cycles_all = [], V_all = [], P_all = [], T_all = []; etaComp_all = []; etaTurb_all = [];//initialize arrays for cycles, V, P, T, and eta
+  console.log("Data loaded!");
+    let cycles_all = [], V_all = [], P_all = [], T_all = [], etaComp_all = [], etaTurb_all = [];//initialize arrays for cycles, V, P, T, and eta
 
   data.forEach(d => { //perform calculations for each row
     const cycles = +d.cycles;
@@ -108,11 +90,11 @@ d3.csv("brayton_cycle.csv").then(function(data) {
 
   //set x and y scales for P-v diagram
   const xPV = d3.scaleLinear().domain(d3.extent(V_all)).range([margin, width - margin]);
-  const yPV = d3.scaleLinear().domain(d3.extent(P_all)).range([height - margin, margin]);
+  const yPV = d3.scaleLinear().domain([10,560]).range([height - margin, margin]);
 
   //set x and y scales for T-s diagram
-  const xTS = d3.scaleLinear().domain([0.5, 2.5]).range([margin, width - margin]);
-  const yTS = d3.scaleLinear().domain(d3.extent(T_all)).range([height - margin, margin]);
+  const xTS = d3.scaleLinear().domain([0.9, 2.1]).range([margin, width - margin]);
+  const yTS = d3.scaleLinear().domain([450,3200]).range([height - margin, margin]);
 
   //set x and y scales for etaComp diagram
   const xEC = d3.scaleLinear().domain(d3.extent(cycles_all)).range([margin, width - margin]);
@@ -128,13 +110,16 @@ d3.csv("brayton_cycle.csv").then(function(data) {
   const svgEC = d3.select("#ecChart");
   const svgET = d3.select("#etChart");
 
+  console.log("yPV domain:", yPV.domain());
+  console.log("yTS domain:", yTS.domain());
+
   //append axes to P-v plot
   svgPV.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xPV));
-  svgPV.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yPV));
+  svgPV.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yPV).ticks(4, "~s"));
 
   //append axes to T-s plot
   svgTS.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xTS));
-  svgTS.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yTS));
+  svgTS.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yTS).ticks(5, "~s"));
 
   //append axes to etaComp plot
   svgEC.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xEC));
@@ -175,19 +160,19 @@ d3.csv("brayton_cycle.csv").then(function(data) {
 
     const pt1 = { V: calcVolume(t2, p2), P: p2, T: t2, s: 1 };
     const pt2 = { V: calcVolume(t30, p30), P: p30, T: t30, s: 1 };
-    const pt3 = { V: calcVolume(combustorTout, p30), P: p30, T: combustorTout, s: 2 };
+    const pt3 = { V: calcVolume(combustorTout, ps30), P: p30, T: combustorTout, s: 2 };
     const pt4 = { V: calcVolume(t50, p2 * epr), P: p2 * epr, T: t50, s: 2 };
-    const pt5 = { V: calcVolume(t50, ambientP), P: ambientP, T: t50, s: 2 };
+    const pt5 = { V: calcVolume(t50, p2), P: p2, T: t50, s: 2 };
 
     return [].concat(
       expPath(pt1, pt2), // Inlet-HPC exp Pv
       [pt2],
       expPathTS(pt2, pt3), // HPC-Comb exp Ts
       [pt3],
-      expPath(pt3, pt4), // Comb-LPT exp Pv
-      [pt4],
-      expPath(pt4, pt5), // LPT-Noz exp Pv
+      expPath(pt3, pt5), // Comb-LPT exp Pv
       [pt5],
+      //expPath(pt4, pt5), // LPT-Noz exp Pv
+      //[pt5],
       expPathTS(pt5, pt1) // Noz-In exp Ts
     );
   }
@@ -245,10 +230,10 @@ d3.csv("brayton_cycle.csv").then(function(data) {
             const subPoints = pathPoints.slice(0, pointIndex + 1);
             svgPV.selectAll(".trace").remove();
             svgPV.append("path").datum(subPoints).attr("class", "trace").attr("d", linePV)
-              .attr("stroke", "red").attr("fill", "none").attr("stroke-width", 2).attr("opacity", 0.7);
+              .attr("stroke", "red").attr("fill", "none").attr("stroke-width", 1).attr("opacity", 0.7);
             svgTS.selectAll(".trace").remove();
             svgTS.append("path").datum(subPoints).attr("class", "trace").attr("d", lineTS)
-              .attr("stroke", "red").attr("fill", "none").attr("stroke-width", 2).attr("opacity", 0.7);
+              .attr("stroke", "red").attr("fill", "none").attr("stroke-width", 1).attr("opacity", 0.7);
       
             // Update EC line
             svgEC.selectAll(".trace").remove();

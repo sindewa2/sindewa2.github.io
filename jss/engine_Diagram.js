@@ -1,15 +1,33 @@
+//import functions from brayton_calcs.js
+import {
+  estimateTout
+} from './brayton_calcs.js';
+
+//import functions from engine_animation.js
+import {
+  lerp,
+  createFlowDot,
+  animateFlow,
+  animateDash,
+  animateBladeDashes
+} from './engine_animation.js';
+
+//store selected engine diagram in constant variable svg
 const svg = d3.select("#engine-diagram")
   .attr("width", 500)
   .attr("height", 400);
 
+//set horizontal centerline variable 
 const centerY = 200;
 
+//append engineGroup to the selected svg
 const engineGroup = svg.append("g")
   .attr("transform", "translate(50, 0)");
 
+//append nacelleGroup to engine group
 const nacelleGroup = engineGroup.append("g").attr("id", "nacelle-group");
 
-// Top nacelle contour (simplified for cross-section profile)
+// Top nacelle contour path
 nacelleGroup.append("path")
   .attr("d", `
     M40,${centerY - 90}                    
@@ -39,7 +57,7 @@ nacelleGroup.append("path")
 
 const coreGroup = engineGroup.append("g").attr("id", "core-group");
 
-// Top engine core contour (simplified for cross-section profile)
+// Top engine core contour
 coreGroup.append("path")
   .attr("d", `
     M100,${centerY - 46}                    
@@ -54,7 +72,7 @@ coreGroup.append("path")
   .attr("fill", "#888")
   .attr("stroke", "none");
 
-  // Bottom engine core contour (simplified for cross-section profile)
+  // Bottom engine core contour (mirror of top)
 coreGroup.append("path")
   .attr("d", `
     M100,${centerY + 46}                    
@@ -69,6 +87,7 @@ coreGroup.append("path")
   .attr("fill", "#888")
   .attr("stroke", "none");      
 
+//append n1Group to engineGroup
 const n1Group = engineGroup.append("g").attr("id", "n1-group");
 
 // Draw the LPC center (a horizontal line)
@@ -101,6 +120,7 @@ n1Group.append("line")
   .attr("stroke", "#444")
   .attr("stroke-width", 5);
 
+// append fanGroup to n1Group
 const fanGroup = n1Group.append("g").attr("id", "n1-group");
   
 // Draw the fan 
@@ -112,9 +132,10 @@ fanGroup.append("line")
   .attr("stroke", "#444")
   .attr("stroke-width", 15);
 
+// append lptGroup to engineGroup
 const lptGroup = engineGroup.append("g").attr("id", "lpt-group");
 
-  // Draw the LPT center
+// Draw the LPT center
 n1Group.append("line")
   .attr("x1", 350)   
   .attr("y1", centerY)
@@ -153,17 +174,17 @@ lptGroup.append("line")
 //draw the exhaust nozzle
 n1Group.append("path")
   .attr("d", "M 378,185 L 450,200 L 380,215 Z")
-  .attr("fill", "#444")        // fill the enclosed area
-  .attr("stroke", "none")      // optional stroke for visibility
+  .attr("fill", "#444")        
+  .attr("stroke", "none")      
   .attr("stroke-width", 2);
 
-// Create a group for LPC blades for rotation animation
+// append LPC blades group to n1 group
 const lpcBladesGroup = n1Group.append("g").attr("id", "lpc-blades-group");
 
 // Original blade start parameters
 const startX = 105;
 const endX = 180;
-const bladeCount = 7; // original + 6 more
+const bladeCount = 7;
 
 // Starting LPC sizes
 const startRectWidth = 12;
@@ -171,13 +192,27 @@ const startRectHeight = 30;
 const startTrapTopWidth = 8;
 const startTrapHeight = 28;
 
-// Ending LPC sizes (skinnier, shorter)
+// Ending LPC sizes
 const endRectWidth = 8;
 const endRectHeight = 30;
 const endTrapTopWidth = 6;
 const endTrapHeight = 14;
 
-// Adjust createBlade to append blades to lpcBladesGroup instead of n1Group
+// For each LPC blade, interpolate position and sizes
+for(let i = 0; i < bladeCount; i++) {
+  
+  let t = i / (bladeCount - 1);  // 0 to 1
+  
+  const cx = lerp(startX, endX, t);
+  const rw = lerp(startRectWidth, endRectWidth, t);
+  const rh = lerp(startRectHeight, endRectHeight, t);
+  const ttW = lerp(startTrapTopWidth, endTrapTopWidth, t);
+  const th = lerp(startTrapHeight, endTrapHeight, t);
+  
+  createBlade(cx, rw, rh, ttW, th);
+}
+
+// append blade paths to lpcBladesGroup 
 function createBlade(centerX, rectWidth, rectHeight, trapTopWidth, trapHeight) {
   const trapBottomWidth = rectWidth;
 
@@ -222,30 +257,12 @@ function createBlade(centerX, rectWidth, rectHeight, trapTopWidth, trapHeight) {
     .attr("stroke", "none");
 
   // Create a centerline path along blade length for sliding lines animation
-  // Here, a simple vertical line centered at centerX, from top to bottom of blade
   const centerlinePath = `M${centerX},${centerY - rectHeight / 2 - trapHeight} L${centerX},${centerY + rectHeight / 2 + trapHeight}`;
   
   return centerlinePath;
 }
 
-// For each LPC blade, interpolate position and sizes
-for(let i = 0; i < bladeCount; i++) {
-  // Linear interpolation helper
-  function lerp(start, end, t) {
-    return start + (end - start) * t;
-  }
-  
-  let t = i / (bladeCount - 1);  // 0 to 1
-  
-  const cx = lerp(startX, endX, t);
-  const rw = lerp(startRectWidth, endRectWidth, t);
-  const rh = lerp(startRectHeight, endRectHeight, t);
-  const ttW = lerp(startTrapTopWidth, endTrapTopWidth, t);
-  const th = lerp(startTrapHeight, endTrapHeight, t);
-  
-  createBlade(cx, rw, rh, ttW, th);
-}
-
+//append hpcGroup to engineGroup
 const hpcGroup = engineGroup.append("g").attr("id", "hpc-group");
 
 // Draw top of HPC body
@@ -275,93 +292,94 @@ hpcGroup.append("path")
 // Draw top of HPC blade 1
 hpcGroup.append("line")
   .attr("x1", 191)   
-  .attr("y1", centerY - 5)
+  .attr("y1", centerY - 28)
   .attr("x2", 191)  
-  .attr("y2", centerY - 28)
+  .attr("y2", centerY - 5)
   .attr("stroke", "#444")
   .attr("stroke-width", 7);
 
 // Draw top of HPC blade 2
 hpcGroup.append("line")
   .attr("x1", 202)   
-  .attr("y1", centerY - 5)
+  .attr("y1", centerY - 28)
   .attr("x2", 202)  
-  .attr("y2", centerY - 28)
+  .attr("y2", centerY - 5)
   .attr("stroke", "#444")
   .attr("stroke-width", 5);
 
 // Draw top of HPC blade 3
 hpcGroup.append("line")
   .attr("x1", 212)   
-  .attr("y1", centerY - 5)
+  .attr("y1", centerY - 30)
   .attr("x2", 212)  
-  .attr("y2", centerY - 30)
+  .attr("y2", centerY - 5)
   .attr("stroke", "#444")
   .attr("stroke-width", 5);
 
 // Draw top of HPC blade 4
 hpcGroup.append("line")
   .attr("x1", 222)   
-  .attr("y1", centerY - 5)
+  .attr("y1", centerY - 30)
   .attr("x2", 222)  
-  .attr("y2", centerY - 30)
+  .attr("y2", centerY - 5)
   .attr("stroke", "#444")
   .attr("stroke-width", 5);
 
 // Draw top of HPC blade 5
 hpcGroup.append("line")
   .attr("x1", 232)   
-  .attr("y1", centerY - 5)
+  .attr("y1", centerY - 28)
   .attr("x2", 232)  
-  .attr("y2", centerY - 28)
+  .attr("y2", centerY - 5)
   .attr("stroke", "#444")
   .attr("stroke-width", 5);
 
 // Draw bottom of HPC blade 1
 hpcGroup.append("line")
   .attr("x1", 191)   
-  .attr("y1", centerY + 28)
+  .attr("y1", centerY + 5)
   .attr("x2", 191)  
-  .attr("y2", centerY + 5)
+  .attr("y2", centerY + 28)
   .attr("stroke", "#444")
   .attr("stroke-width", 7);
 
 // Draw bottom of HPC blade 2
 hpcGroup.append("line")
   .attr("x1", 202)   
-  .attr("y1", centerY + 28)
+  .attr("y1", centerY + 5)
   .attr("x2", 202)  
-  .attr("y2", centerY + 5)
+  .attr("y2", centerY + 28)
   .attr("stroke", "#444")
   .attr("stroke-width", 5);
 
 // Draw bottom of HPC blade 3
 hpcGroup.append("line")
   .attr("x1", 212)   
-  .attr("y1", centerY + 30)
+  .attr("y1", centerY + 5)
   .attr("x2", 212)  
-  .attr("y2", centerY + 5)
+  .attr("y2", centerY + 30)
   .attr("stroke", "#444")
   .attr("stroke-width", 5);
 
 // Draw bottom of HPC blade 4
 hpcGroup.append("line")
   .attr("x1", 222)   
-  .attr("y1", centerY + 30)
+  .attr("y1", centerY + 5)
   .attr("x2", 222)  
-  .attr("y2", centerY + 5)
+  .attr("y2", centerY + 30)
   .attr("stroke", "#444")
   .attr("stroke-width", 5);
 
 // Draw bottom of HPC blade 5
 hpcGroup.append("line")
   .attr("x1", 232)   
-  .attr("y1", centerY + 28)
+  .attr("y1", centerY + 5)
   .attr("x2", 232)  
-  .attr("y2", centerY + 5)
+  .attr("y2", centerY + 28)
   .attr("stroke", "#444")
   .attr("stroke-width", 5);
 
+//append n2Group to engineGroup
 const n2Group = engineGroup.append("g").attr("id", "n2-group");
 
 // Draw top of n2 shaft
@@ -382,46 +400,49 @@ n2Group.append("line")
   .attr("stroke", "#444")
   .attr("stroke-width", 6);
 
+//append hptGroup to engineGroup
 const hptGroup = engineGroup.append("g").attr("id", "hpt-group");
 
 // Draw top of HPT blade
 hptGroup.append("line")
   .attr("x1", 337)   
-  .attr("y1", centerY - 5)
+  .attr("y1", centerY - 40)
   .attr("x2", 337)  
-  .attr("y2", centerY - 40)
+  .attr("y2", centerY - 5)
   .attr("stroke", "#444")
   .attr("stroke-width", 10);
   
 // Draw bottom of HPT blade
 hptGroup.append("line")
   .attr("x1", 337)   
-  .attr("y1", centerY + 40)
+  .attr("y1", centerY + 5)
   .attr("x2", 337)  
-  .attr("y2", centerY + 5)
+  .attr("y2", centerY + 40)
   .attr("stroke", "#444")
   .attr("stroke-width", 10);
 
-// Draw combustor section
+// Draw combustor section (top)
 engineGroup.append("ellipse")
-  .attr("cx", 290)           // horizontal center of combustor section
-  .attr("cy", centerY - 28)  // above center line
-  .attr("rx", 35)            // horizontal radius
-  .attr("ry", 15)            // vertical radius
+  .attr("cx", 290)           
+  .attr("cy", centerY - 28)  
+  .attr("rx", 35)            
+  .attr("ry", 15)           
   .attr("fill", "red")
-  .attr("opacity", 0.7);
+  .attr("opacity", 0.3);
 
+// Draw combustor section (bottom)
 engineGroup.append("ellipse")
-  .attr("cx", 290)           // horizontal center of combustor section
-  .attr("cy", centerY + 28)  // below center line
+  .attr("cx", 290)           
+  .attr("cy", centerY + 28) 
   .attr("rx", 35)
   .attr("ry", 15)
   .attr("fill", "red")
-  .attr("opacity", 0.7);
+  .attr("opacity", 0.3);
 
 //define a tooltip group
 const tooltip = d3.select("#engine-tooltip");
 
+//define data associated with tooltip interaction regions
 const regions = [
   { name: "Fan",                         x: 75,  width: 25 },
   { name: "Low Pressure Compressor",     x: 105, width: 75 },
@@ -435,6 +456,7 @@ const regions = [
 // Create a group to hold interaction hitboxes
 const interactionGroup = engineGroup.append("g").attr("id", "interaction-layer");
 
+//execute tooltip regions
 regions.forEach(region => {
   interactionGroup.append("rect")
     .datum(region) // Bind region data
@@ -461,70 +483,123 @@ regions.forEach(region => {
     });
 });
 
-// Airflow groups
+// Append airflow path group to engineGroup
 const airflowGroup = engineGroup.append("g").attr("id", "airflow-group");
 
+// Draw the first top bypass airflow path
 const bypassPathTop1 = airflowGroup.append("path")
   .attr("d", `M40,${centerY - 70} C200,${centerY - 90} 250,${centerY - 90} 300,${centerY - 80}`)
   .attr("fill", "none")
-  .attr("stroke", "skyblue")
+  .attr("stroke", "deepskyblue")
   .attr("stroke-width", 4)
   .attr("stroke-dasharray", "5,5")
   .attr("opacity", 0);
 
+// Draw the second top bypass airflow path
 const bypassPathTop2 = airflowGroup.append("path")
   .attr("d", `M40,${centerY - 60} C200,${centerY - 80} 250,${centerY - 80} 300,${centerY - 70}`)
   .attr("fill", "none")
-  .attr("stroke", "skyblue")
+  .attr("stroke", "deepskyblue")
   .attr("stroke-width", 4)
   .attr("stroke-dasharray", "5,5")
   .attr("opacity", 0);
 
+// Draw the first bottom bypass airflow path (mirror of top)
 const bypassPathBottom1 = airflowGroup.append("path")
   .attr("d", `M40,${centerY + 70} C200,${centerY + 90} 250,${centerY + 90} 300,${centerY + 80}`)
   .attr("fill", "none")
-  .attr("stroke", "skyblue")
+  .attr("stroke", "deepskyblue")
   .attr("stroke-width", 4)
   .attr("stroke-dasharray", "5,5")
   .attr("opacity", 0);
 
+// Draw the second bottom bypass airflow path (mirror of top)
 const bypassPathBottom2 = airflowGroup.append("path")
   .attr("d", `M40,${centerY + 60} C200,${centerY + 80} 250,${centerY + 80} 300,${centerY + 70}`)
   .attr("fill", "none")
-  .attr("stroke", "skyblue")
+  .attr("stroke", "deepskyblue")
   .attr("stroke-width", 4)
   .attr("stroke-dasharray", "5,5")
   .attr("opacity", 0);
 
-
+// draw the top core airflow path
 const corePathTop = airflowGroup.append("path")
   .attr("d", `M40,${centerY - 40} C220,${centerY - 15} 250,${centerY - 28} 300,${centerY - 30} L425,${centerY - 30}`)
   .attr("fill", "none")
-  .attr("stroke", "deepskyblue")
+  .attr("stroke", "skyblue")
   .attr("stroke-width", 3)
   .attr("stroke-dasharray", "4,4")
   .attr("opacity", 0);
 
+// draw the bottom core airflow path (mirror of top)
 const corePathBottom = airflowGroup.append("path")
   .attr("d", `M40,${centerY + 40} C220,${centerY + 15} 250,${centerY + 28} 300,${centerY + 30} L425,${centerY + 30}`)
   .attr("fill", "none")
-  .attr("stroke", "deepskyblue")
+  .attr("stroke", "skyblue")
   .attr("stroke-width", 3)
   .attr("stroke-dasharray", "4,4")
   .attr("opacity", 0);
 
-// Animate the dash offset
-function animateFlow(path) {
-  path.transition()
-    .duration(500)
-    .ease(d3.easeLinear)
-    .attrTween("stroke-dashoffset", () => d3.interpolate(10, 0))
-    .on("end", () => animateFlow(path));
-}
+// define segment arrays
+let coreSegments = [], bypassSegments = [], flowDotElements = [];
+
+//add reference dots
+const flowDotGroup = airflowGroup.append("g").attr("id", "flow-dots");
+
+//load the first row from the brayton_cycle csv
+d3.csv("brayton_cycle.csv").then(data => {
+  // Use the first row or average multiple rows
+  const d = data[0]; // example: use row 0
+
+  const values = {
+    temperature: {
+      t2: +d.t2,
+      t24: +d.t24,
+      t30: +d.t30,
+      t40: estimateTout(+d.ps30 * +d.phi, +d.farB, +d.t30),
+      t50: +d.t50
+    },
+    pressure: {
+      p2: +d.p2,
+      p15: +d.p15,
+      p30: +d.p30,
+      p40: +d.p30,
+      p50: +d.p2 * +d.epr
+    }
+  };
+
+  // Define key temperature and pressure changes along the core flow path
+  coreSegments = [
+    { pct: 0.0, temp: values.temperature.t2,   pressure: values.pressure.p2 },   // Fan inlet
+    { pct: 0.48, temp: values.temperature.t30, pressure: values.pressure.p30 },  // HPC outlet
+    { pct: 0.70, temp: values.temperature.t40, pressure: values.pressure.p40 },  // Combustor outlet
+    { pct: 0.90, temp: values.temperature.t50, pressure: values.pressure.p50 },  // LPT outlet
+    { pct: 1.0, temp: values.temperature.t50,  pressure: values.pressure.p2 }    // Nozzle/exit
+  ];
+
+  // Define key temperature and pressure changes along the bypass flow path
+  bypassSegments = [
+    { pct: 0.0, temp: values.temperature.t2,  pressure: values.pressure.p2 },   // Fan inlet
+    { pct: 0.16, temp: values.temperature.t2, pressure: values.pressure.p15 },  // Bypass duct
+    { pct: 1.0, temp: values.temperature.t2,  pressure: values.pressure.p15 }   // Bypass exit
+  ];
+  
+  flowDotElements = [
+  // add bypass flow dots in if desired but they don't add much to the visualization
+  //...createFlowDot(bypassPathTop1, flowDotGroup, bypassSegments),
+  //...createFlowDot(bypassPathTop2, flowDotGroup, bypassSegments),
+  //...createFlowDot(bypassPathBottom1, flowDotGroup, bypassSegments),
+  //...createFlowDot(bypassPathBottom2, flowDotGroup, bypassSegments), 
+  ...createFlowDot(corePathTop, flowDotGroup, coreSegments),
+  ...createFlowDot(corePathBottom, flowDotGroup, coreSegments)
+];
+
+});
 
 const width = 120;
 const height = 200;
 
+// select the throttle container and store it in a constant variable.
 const throttle = d3.select("#throttle-container")
   .append("svg")
   .attr("width", width)
@@ -579,7 +654,7 @@ const valueText = throttle.append("text")
   .attr("font-size", "14px")
   .text("Throttle: 0%");
 
-// Shared drag behavior (coupled)
+// Couple d drag behavior
 const drag = d3.drag()
   .on("drag", function (event) {
     let newY = Math.min(Math.max(event.y, 20), height - 40);
@@ -594,40 +669,11 @@ const drag = d3.drag()
     updateThrottleVisualization(percent);
   });
 
+//enable drag action
 leftKnob.call(drag);
 rightKnob.call(drag);
 
-function updateThrottleVisualization(val) {
-  const flowOpacity = Math.min(1, val / 50);
-  const coreOpacity = Math.min(1, (val - 30) / 50);
-
-  if (val > 0) {
-    bypassPathTop1?.attr("opacity", flowOpacity);
-    bypassPathTop2?.attr("opacity", flowOpacity);
-    bypassPathBottom1?.attr("opacity", flowOpacity);
-    bypassPathBottom2?.attr("opacity", flowOpacity);
-    corePathTop?.attr("opacity", coreOpacity);
-    corePathBottom?.attr("opacity", coreOpacity);
-  } else {
-    bypassPathTop1?.attr("opacity", 0);
-    bypassPathTop2?.attr("opacity", 0);
-    bypassPathBottom1?.attr("opacity", 0);
-    bypassPathBottom2?.attr("opacity", 0);
-    corePathTop?.attr("opacity", 0);
-    corePathBottom?.attr("opacity", 0);
-  }
-
-  //Sliding lines fade in/out with flow
-  slidingLineElements.forEach(path =>
-    path.attr("opacity", flowOpacity)
-  );
-
-  dashOverlayElements.forEach(path =>
-    path.attr("opacity", flowOpacity)
-  );
-}
-
-
+//call the animate flow functions for each of the paths.
 animateFlow(bypassPathTop1);
 animateFlow(bypassPathTop2);
 animateFlow(bypassPathBottom1);
@@ -638,10 +684,8 @@ animateFlow(corePathBottom);
 // Store all centerline paths for sliding lines
 const slidingLinesPaths = [];
 
+//create the sliding lines from the LPC blade shapes
 for(let i = 0; i < bladeCount; i++) {
-  function lerp(start, end, t) {
-    return start + (end - start) * t;
-  }
   
   let t = i / (bladeCount - 1);
   
@@ -655,16 +699,26 @@ for(let i = 0; i < bladeCount; i++) {
   slidingLinesPaths.push(centerline);
 }
 
-// Create sliding lines group
+// Create sliding lines group for the LPC trapezoid blades
 const slidingLinesGroup = engineGroup.append("g").attr("id", "sliding-lines-group");
 
-const slidingLineElements = []; // <--- New array to store actual SVG elements
+//array to store sliding SVG elements for the LPC blades
+const slidingLineElements = []; 
 
+//array to store sliding SVG elements for the Fan, HPC, HPT, and LPT blades
+const dashOverlayElements = [
+  ...animateBladeDashes(fanGroup),
+  ...animateBladeDashes(hpcGroup),
+  ...animateBladeDashes(hptGroup),
+  ...animateBladeDashes(lptGroup)
+];
+
+//create each sliding line path for the LPC blades
 slidingLinesPaths.forEach(pathD => {
   const path = slidingLinesGroup.append("path")
     .attr("d", pathD)
+    .attr("stroke-width", 6)
     .attr("stroke", "black")
-    .attr("stroke-width", 2)
     .attr("fill", "none")
     .attr("stroke-dasharray", "5 10")
     .attr("stroke-dashoffset", 0)
@@ -672,63 +726,95 @@ slidingLinesPaths.forEach(pathD => {
 
   slidingLineElements.push(path); // <--- Store path element
 
-  // Animate dash offset for sliding effect
-  function animateDash() {
-    path.transition()
-      .duration(2000)
-      .ease(d3.easeLinear)
-      .attrTween("stroke-dashoffset", () => d3.interpolate(0, 15))
-      .on("end", animateDash);
-  }
-  animateDash();
+  animateDash(path);
 });
 
-const dashOverlayElements = [];
+//function to update the visualization based on the throttle input
+function updateThrottleVisualization(val) {
+  const flowOpacity = Math.min(1, val / 50);
+  const coreOpacity = Math.min(1, (val - 30) / 50);
 
-function animateBladeDashes(group) {
-  // Clear any existing overlay dashed lines to avoid duplicates
-  group.selectAll(".dash-overlay").remove();
+  if (val > 0) {
+    bypassPathTop1?.attr("opacity", flowOpacity);
+    bypassPathTop2?.attr("opacity", flowOpacity);
+    bypassPathBottom1?.attr("opacity", flowOpacity);
+    bypassPathBottom2?.attr("opacity", flowOpacity);
+    corePathTop?.attr("opacity", coreOpacity);
+    corePathBottom?.attr("opacity", coreOpacity);
+    flowDotGroup?.attr("opacity",coreOpacity)
+  } else {
+    bypassPathTop1?.attr("opacity", 0);
+    bypassPathTop2?.attr("opacity", 0);
+    bypassPathBottom1?.attr("opacity", 0);
+    bypassPathBottom2?.attr("opacity", 0);
+    corePathTop?.attr("opacity", 0);
+    corePathBottom?.attr("opacity", 0);
+    flowDotGroup?.attr("opacity",0);
+  }
 
-  // Append new dashed overlay lines on top of each existing line
-  group.selectAll("line").each(function() {
-    const orig = d3.select(this);
-    const x1 = orig.attr("x1");
-    const y1 = orig.attr("y1");
-    const x2 = orig.attr("x2");
-    const y2 = orig.attr("y2");
-    const strokeWidth = orig.attr("stroke-width") || 2;
+  //Sliding lines for LPC fade in/out with flow
+  slidingLineElements.forEach(path =>
+    path.attr("opacity", flowOpacity)
+  );
 
-    const dashLine = group.append("line")
-      .attr("class", "dash-overlay")
-      .attr("x1", x1)
-      .attr("y1", y1)
-      .attr("x2", x2)
-      .attr("y2", y2)
-      .attr("stroke", "black")
-      .attr("stroke-width", strokeWidth*0.7) // 70% of strokeWidth
-      .attr("fill", "none")
-      .attr("stroke-dasharray", "8 8")
-      .attr("stroke-dashoffset", 0)
-      .attr("opacity", 0); // start hidden
+  //Slides lines for Fan, HPC, HPT, and LPT fade in/out with flow
+  dashOverlayElements.forEach(path =>
+    path.attr("opacity", flowOpacity)
+  );
 
-    dashOverlayElements.push(dashLine);
-
-    // Animate stroke-dashoffset for sliding dash effect
-    function animate() {
-      dashLine.transition()
-        .duration(2000)
-        .ease(d3.easeLinear)
-        .attr("stroke-dashoffset", 16)
-        .on("end", () => {
-          dashLine.attr("stroke-dashoffset", 0);
-          animate();
-        });
-    }
-    animate();
-  });
+  //Flow dots fade in/out with flow
+  flowDotElements.forEach(dot =>
+    dot.attr("opacity", flowOpacity)
+  );
 }
 
-animateBladeDashes(fanGroup);
-animateBladeDashes(hpcGroup);
-animateBladeDashes(hptGroup);
-animateBladeDashes(lptGroup);
+//pressure chart
+const pChartWidth = 500;
+const pChartHeight = 150;
+const pMargin = { top: 20, right: 30, bottom: 30, left: 50 };
+
+const pChartSVG = d3.select("#pressure-chart-container")
+  .append("svg")
+  .attr("width", pChartWidth)
+  .attr("height", pChartHeight);
+
+const xP = d3.scaleLinear()
+  .domain([0, 1])
+  .range([pMargin.left, pChartWidth - pMargin.right]);
+
+const maxPressure = d3.max(coreSegments, d => d.pressure);
+const minPressure = d3.min(coreSegments, d => d.pressure);
+
+const yP = d3.scaleLinear()
+  .domain([minPressure * 0.95, maxPressure * 1.05])
+  .range([pChartHeight - pMargin.bottom, pMargin.top]);
+
+// Add axes
+pChartSVG.append("g")
+  .attr("transform", `translate(0,${pChartHeight - pMargin.bottom})`)
+  .call(d3.axisBottom(xP).ticks(5).tickFormat(d => `${Math.round(d * 100)}%`));
+
+pChartSVG.append("g")
+  .attr("transform", `translate(${pMargin.left},0)`)
+  .call(d3.axisLeft(yP));
+
+// Line generator
+const lineGen = d3.line()
+  .x(d => xScale(d.pct))
+  .y(d => yScale(d.pressure))
+  .curve(d3.curveMonotoneX);
+
+// Draw pressure line
+pChartSVG.append("path")
+  .datum(coreSegments)
+  .attr("fill", "none")
+  .attr("stroke", "steelblue")
+  .attr("stroke-width", 2)
+  .attr("d", lineGen);
+
+const pressureDot = pChartSVG.append("circle")
+  .attr("r", 5)
+  .attr("fill", "orange")
+  .attr("stroke", "black")
+  .attr("cx", xP(coreSegments[0].pct))
+  .attr("cy", yP(coreSegments[0].pressure));
