@@ -1,8 +1,17 @@
-body {
+html, body {
   font-family: sans-serif;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  height: 150%;
+  overflow-y: scroll !important;
+}
+
+#main-title{
+  margin-left: 40px;
+}
+
+#scene1-title{
+  margin-left: 40px;
 }
 
 #engine-tooltip {
