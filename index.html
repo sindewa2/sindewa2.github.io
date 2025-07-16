@@ -6,15 +6,18 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <h1>Turbofan Engine Health Management</h1>
-  <h2>Engine Operation</h2>
+  <h1 id="main-title">Turbofan Engine Health Management</h1>
+  <h2 id="scene1-title">Engine Operation</h2>
   
   <div id="main-layout" style="display: flex; align-items: center; gap: 40px;">
     <svg id="engine-diagram"></svg>
     <div id="throttle-container"></div>
-    <svg id="pressure-chart-container"></svg>
   </div>
   
+  <div id="chart-container" style="margin-top: 30px; display: flex; align-items: center; gap: 40px;">
+    <svg id="pressure-chart-container"></svg>
+    <svg id="temperature-chart-container"></svg>
+  </div>
 
   <div id="engine-tooltip"></div>
   <!-- Load scripts -->

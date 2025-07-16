@@ -540,11 +540,41 @@ const corePathBottom = airflowGroup.append("path")
   .attr("stroke-dasharray", "4,4")
   .attr("opacity", 0);
 
+// define pressure chart characteristics
+const pChartWidth = 450;
+const pChartHeight = 400;
+const pMargin = { top: 20, right: 0, bottom: 30, left: 40 };
+
+// define temperature chart characteristics to be same as pressure chart
+const tChartWidth = pChartWidth;
+const tChartHeight = pChartHeight;
+const tMargin = pMargin;
+
+//select pressure chart svg
+const pChart = d3.select("#pressure-chart-container")
+.attr("width", 500)
+.attr("height", 450);
+
+//create group in pChart
+const pChartGroup = pChart.append("g")
+  .attr("transform", "translate(50, 0)");
+
+//select temperature chart svg
+const tChart = d3.select("#temperature-chart-container")
+.attr("width", 500)
+.attr("height", 450);
+
+//create group in tChart
+const tChartGroup = tChart.append("g")
+  .attr("transform", "translate(50, 0)");
+
 // define segment arrays
-let coreSegments = [], bypassSegments = [], flowDotElements = [];
+let coreSegments = [], bypassSegments = [], flowDotElements = [], chartDotElements = [];
 
 //add reference dots
 const flowDotGroup = airflowGroup.append("g").attr("id", "flow-dots");
+const pDotGroup = pChartGroup.append("g").attr("id", "p-chart-dots");
+const tDotGroup = tChartGroup.append("g").attr("id", "t-chart-dots");
 
 //load the first row from the brayton_cycle csv
 d3.csv("brayton_cycle.csv").then(data => {
@@ -573,7 +603,7 @@ d3.csv("brayton_cycle.csv").then(data => {
     { pct: 0.0, temp: values.temperature.t2,   pressure: values.pressure.p2 },   // Fan inlet
     { pct: 0.48, temp: values.temperature.t30, pressure: values.pressure.p30 },  // HPC outlet
     { pct: 0.70, temp: values.temperature.t40, pressure: values.pressure.p40 },  // Combustor outlet
-    { pct: 0.90, temp: values.temperature.t50, pressure: values.pressure.p50 },  // LPT outlet
+    //{ pct: 0.90, temp: values.temperature.t50, pressure: values.pressure.p50 },  // LPT outlet
     { pct: 1.0, temp: values.temperature.t50,  pressure: values.pressure.p2 }    // Nozzle/exit
   ];
 
@@ -584,15 +614,40 @@ d3.csv("brayton_cycle.csv").then(data => {
     { pct: 1.0, temp: values.temperature.t2,  pressure: values.pressure.p15 }   // Bypass exit
   ];
   
+  const xScaleEngine = d3.scaleLinear()
+    .domain([0, 1])
+    .range([40, 425]);
+
   flowDotElements = [
-  // add bypass flow dots in if desired but they don't add much to the visualization
-  //...createFlowDot(bypassPathTop1, flowDotGroup, bypassSegments),
-  //...createFlowDot(bypassPathTop2, flowDotGroup, bypassSegments),
-  //...createFlowDot(bypassPathBottom1, flowDotGroup, bypassSegments),
-  //...createFlowDot(bypassPathBottom2, flowDotGroup, bypassSegments), 
-  ...createFlowDot(corePathTop, flowDotGroup, coreSegments),
-  ...createFlowDot(corePathBottom, flowDotGroup, coreSegments)
-];
+  ...createFlowDot(corePathTop,flowDotGroup,coreSegments,xScaleEngine,null,"core"),
+  ...createFlowDot(corePathBottom,flowDotGroup,coreSegments,xScaleEngine,null,"core")
+  ];
+
+  // For pressure chart dots
+  const pXScale = d3.scaleLinear()
+    .domain([0, 1])
+    .range([pMargin.left, pChartWidth - pMargin.right]);
+
+  const pYScale = d3.scaleLinear()
+    .domain([0, 1.1*d3.max(coreSegments, d => d.pressure)])
+    .range([pChartHeight - pMargin.bottom, pMargin.top]);
+
+  // Similarly for temperature chart dots
+  const tXScale = d3.scaleLinear()
+    .domain([0, 1])
+    .range([tMargin.left, tChartWidth - tMargin.right]);
+
+  const tYScale = d3.scaleLinear()
+    .domain([0, 1.1*d3.max(coreSegments, d => d.temp)])
+    .range([tChartHeight - tMargin.bottom, tMargin.top]);
+
+  const pChartPath = drawPressureChart(coreSegments,pXScale,pYScale);
+  const tChartPath = drawTemperatureChart(coreSegments,tXScale,tYScale);
+
+  chartDotElements = [
+    ...createFlowDot(pChartPath, pDotGroup, coreSegments, pXScale, pYScale,"pressure"),
+    ...createFlowDot(tChartPath, tDotGroup, coreSegments, tXScale, tYScale,"temp")
+  ];
 
 });
 
@@ -742,6 +797,8 @@ function updateThrottleVisualization(val) {
     corePathTop?.attr("opacity", coreOpacity);
     corePathBottom?.attr("opacity", coreOpacity);
     flowDotGroup?.attr("opacity",coreOpacity)
+    pDotGroup?.attr("opacity",coreOpacity)
+    tDotGroup?.attr("opacity",coreOpacity)
   } else {
     bypassPathTop1?.attr("opacity", 0);
     bypassPathTop2?.attr("opacity", 0);
@@ -750,6 +807,8 @@ function updateThrottleVisualization(val) {
     corePathTop?.attr("opacity", 0);
     corePathBottom?.attr("opacity", 0);
     flowDotGroup?.attr("opacity",0);
+    pDotGroup?.attr("opacity",0);
+    tDotGroup?.attr("opacity",0);
   }
 
   //Sliding lines for LPC fade in/out with flow
@@ -766,55 +825,115 @@ function updateThrottleVisualization(val) {
   flowDotElements.forEach(dot =>
     dot.attr("opacity", flowOpacity)
   );
+
+  //Flow dots fade in/out with flow
+  chartDotElements.forEach(dot =>
+    dot.attr("opacity", flowOpacity)
+  );
 }
 
-//pressure chart
-const pChartWidth = 500;
-const pChartHeight = 150;
-const pMargin = { top: 20, right: 30, bottom: 30, left: 50 };
+function drawPressureChart(coreSegments,xScale,yScale) {
+  
+  // Add X Axis
+  pChartGroup.append("g")
+    .attr("transform", `translate(0, ${pChartHeight - pMargin.bottom})`)
+    .call(d3.axisBottom(xScale).ticks(0).tickFormat(d3.format(".0%")))
+    .attr("font-size", 12);
 
-const pChartSVG = d3.select("#pressure-chart-container")
-  .append("svg")
-  .attr("width", pChartWidth)
-  .attr("height", pChartHeight);
+  // Add Y Axis
+  pChartGroup.append("g")
+    .attr("transform", `translate(${pMargin.left}, 0)`)
+    .call(d3.axisLeft(yScale).ticks(5))
+    .attr("font-size", 12);
+  
+  // Chart Title
+  pChartGroup.append("text")
+    .attr("x", pChartWidth / 2)
+    .attr("y", 15)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Pressure Along Core Flow Path");
+  
+  // X Axis Label
+  pChartGroup.append("text")
+    .attr("x", pChartWidth / 2)
+    .attr("y", pChartHeight - 10)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Core Flow Path");
 
-const xP = d3.scaleLinear()
-  .domain([0, 1])
-  .range([pMargin.left, pChartWidth - pMargin.right]);
+  // Y Axis Label
+  pChartGroup.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -pChartHeight / 2)
+    .attr("y", 0)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Pressure (psi)");  // Adjust unit as needed
 
-const maxPressure = d3.max(coreSegments, d => d.pressure);
-const minPressure = d3.min(coreSegments, d => d.pressure);
+  const line = d3.line()
+    .x(d => xScale(d.pct))
+    .y(d => yScale(d.pressure));
 
-const yP = d3.scaleLinear()
-  .domain([minPressure * 0.95, maxPressure * 1.05])
-  .range([pChartHeight - pMargin.bottom, pMargin.top]);
+  const path = pChartGroup.append("path")
+    .datum(coreSegments)
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 2)
+    .attr("d", line);
 
-// Add axes
-pChartSVG.append("g")
-  .attr("transform", `translate(0,${pChartHeight - pMargin.bottom})`)
-  .call(d3.axisBottom(xP).ticks(5).tickFormat(d => `${Math.round(d * 100)}%`));
+  return path;
+}
 
-pChartSVG.append("g")
-  .attr("transform", `translate(${pMargin.left},0)`)
-  .call(d3.axisLeft(yP));
+function drawTemperatureChart(coreSegments,xScale,yScale) {
+  
+  // Add X Axis
+  tChartGroup.append("g")
+    .attr("transform", `translate(0, ${tChartHeight - tMargin.bottom})`)
+    .call(d3.axisBottom(xScale).ticks(0).tickFormat(d3.format(".0%")))
+    .attr("font-size", 12);
 
-// Line generator
-const lineGen = d3.line()
-  .x(d => xScale(d.pct))
-  .y(d => yScale(d.pressure))
-  .curve(d3.curveMonotoneX);
+  // Add Y Axis
+  tChartGroup.append("g")
+    .attr("transform", `translate(${tMargin.left}, 0)`)
+    .call(d3.axisLeft(yScale).ticks(5))
+    .attr("font-size", 12);
 
-// Draw pressure line
-pChartSVG.append("path")
-  .datum(coreSegments)
-  .attr("fill", "none")
-  .attr("stroke", "steelblue")
-  .attr("stroke-width", 2)
-  .attr("d", lineGen);
+  // Title
+  tChartGroup.append("text")
+    .attr("x", tChartWidth / 2)
+    .attr("y", 15)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Temperature Along Core Flow Path");
 
-const pressureDot = pChartSVG.append("circle")
-  .attr("r", 5)
-  .attr("fill", "orange")
-  .attr("stroke", "black")
-  .attr("cx", xP(coreSegments[0].pct))
-  .attr("cy", yP(coreSegments[0].pressure));
+  // X Axis Label
+  tChartGroup.append("text")
+    .attr("x", tChartWidth / 2)
+    .attr("y", tChartHeight - 10)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Core Flow Path");
+
+  // Y Axis Label
+  tChartGroup.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -tChartHeight / 2)
+    .attr("y", -10)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Temperature (Rankine)");  // Adjust unit as needed
+
+  const line = d3.line()
+    .x(d => xScale(d.pct))
+    .y(d => yScale(d.temp));
+
+  const path = tChartGroup.append("path")
+    .datum(coreSegments)
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 2)
+    .attr("d", line);
+
+  return path;
+}

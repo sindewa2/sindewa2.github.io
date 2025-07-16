@@ -23,10 +23,11 @@ const sizeScale = d3.scaleSqrt()
   .domain([14.6, 550])  
   .range([10, 5]);       
 
-function createFlowDot(path, group, segments) {
+function createFlowDot(path, group, segments, xScale, yScale,type) {
   const flowDotElements = [];
 
   const totalLength = path.node().getTotalLength();
+  const pathId = path.attr("id") || "Unnamed path";
 
   const dot = group.append("circle")
     .attr("r", sizeScale(segments[0].pressure))
@@ -35,26 +36,50 @@ function createFlowDot(path, group, segments) {
 
   flowDotElements.push(dot);
 
-  animateDot(dot, path, totalLength, segments); 
+  animateDot(dot, segments, xScale, yScale, 4000, type, path, totalLength);
 
   return flowDotElements;
 }
 
-function animateDot(dot, path, totalLength, segments) {
+function animateDot(dot, segments, xScale, yScale, duration, type, path, totalLength) {
   dot.transition()
-    .duration(4000)
+    .duration(duration)
     .ease(d3.easeLinear)
     .attrTween("transform", () => {
       return t => {
-        const point = path.node().getPointAtLength(t * totalLength);
-        const state = interpolateSegment(segments, t); 
+        // interpolate which segment we're on based on t
+        const state = interpolateSegment(segments, t);
+
+        // x is linear from pct domain
+        const x = xScale(t);
+
+        console.log(`Type "${type}"`);
+
+        //need to set y value based off of which chart the dot is going to be populated on
+        let y = 0;
+        let point = 0;
+        if (type === "pressure"){
+          y = yScale ? yScale(state.pressure) : 0; 
+        }
+        else if (type === "temp"){
+          y = yScale ? yScale(state.temp) : 0; 
+        }
+        else if (type === "core"){
+          point = path.node().getPointAtLength(t * totalLength);
+          y = point.y;
+        }
+        else{
+          y = 0; // reset y to 0
+        }
+
         dot
           .attr("fill", colorScale(state.temp))
           .attr("r", sizeScale(state.pressure));
-        return `translate(${point.x},${point.y})`;
+
+        return `translate(${x},${y})`;
       };
     })
-    .on("end", () => animateDot(dot, path, totalLength, segments));
+    .on("end", () => animateDot(dot, segments, xScale, yScale, duration, type, path, totalLength));
 }
 
 function interpolateSegment(segments, t) {
