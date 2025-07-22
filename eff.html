@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Efficiency Cycle Visualization</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    #chart-container { display: flex; flex-direction: row; }
+    svg { font: 10px sans-serif; margin-right: 10px; }
+    circle { fill: steelblue; }
+    path.line { fill: none; stroke: gray; stroke-width: 2; opacity: 0.3; }
+    path.history { fill: none; stroke: red; stroke-width: 2; opacity: 0.5; }
+    circle.animated { fill: red; }
+    text.counter { font-size: 16px; fill: black; font-weight: bold; }
+    #controls { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Engine Compressor Efficiency</h1>
+  <div id="chart-container-efficiency">
+    <svg id="cChart" width="400" height="400"></svg>
+    <svg id="tChart" width="400" height="400"></svg>
+  </div>
+
+  <script type="module" src="jss/eff.js"></script>
+</body>
+</html>
