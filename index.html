@@ -14,15 +14,38 @@
     <div id="throttle-container"></div>
   </div>
   
-  <div id="chart-container" style="margin-top: 30px; display: flex; align-items: center; gap: 40px;">
-    <svg id="pressure-chart-container"></svg>
-    <svg id="temperature-chart-container"></svg>
+  <div id="core-flow-charts" style="margin-top: 30px; display: flex; align-items: center; gap: 40px;">
+    <svg id="pressure-chart"></svg>
+    <svg id="temperature-chart"></svg>
+  </div>
+
+  <h2 id="scene2-title">Brayton Cycle</h2>
+  <div id="chart-container-brayton">
+    <svg id="pvChart" width="500" height="400"></svg>
+    <svg id="tsChart" width="500" height="400"></svg>
+  </div>
+  <div id="chart-container-eta">
+    <svg id="ecChart" width="500" height="400"></svg>
+    <svg id="etChart" width="500" height="400"></svg>
+  </div>
+  <div id="controls">
+    <button id="runBtn">Run Simulation</button>
+    <button id="pauseBtn">Pause</button>
+    <label>Speed: <input type="range" id="speedSlider" min="1" max="10" value="10"></label>
+  </div>
+
+  <h2 id="scene3-title">Engine Compressor Efficiency</h2>
+  <div id="chart-container-efficiency">
+    <svg id="cChart" width="400" height="400"></svg>
+    <svg id="tChart" width="400" height="400"></svg>
   </div>
 
   <div id="engine-tooltip"></div>
   <!-- Load scripts -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script type="module" src="jss/engine_Diagram.js"></script>
+  <script type="module" src="jss/brayton_cycle.js"></script>
+  <script type="module" src="jss/eff.js"></script>
 </body>
 
 </html>

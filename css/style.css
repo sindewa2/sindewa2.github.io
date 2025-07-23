@@ -10,7 +10,7 @@ html, body {
   margin-left: 40px;
 }
 
-#scene1-title{
+#scene1-title, #scene2-title, #scene3-title, #controls{
   margin-left: 40px;
 }
 
@@ -31,3 +31,11 @@ html, body {
   display: block;
   overflow: visible; /* important for D3 sometimes */
 }
+
+#chart-container { display: flex; flex-direction: row; }
+    svg { font: 10px sans-serif; margin-right: 10px; }
+    path.line { fill: none; stroke: gray; stroke-width: 2; opacity: 0.3; }
+    path.history { fill: none; stroke: red; stroke-width: 2; opacity: 0.5; }
+    circle.animated { fill: red; }
+    text.counter { font-size: 16px; fill: black; font-weight: bold; }
+    #controls { margin-top: 10px; }

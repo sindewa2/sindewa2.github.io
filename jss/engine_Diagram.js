@@ -551,7 +551,7 @@ const tChartHeight = pChartHeight;
 const tMargin = pMargin;
 
 //select pressure chart svg
-const pChart = d3.select("#pressure-chart-container")
+const pChart = d3.select("#pressure-chart")
 .attr("width", 500)
 .attr("height", 450);
 
@@ -560,7 +560,7 @@ const pChartGroup = pChart.append("g")
   .attr("transform", "translate(50, 0)");
 
 //select temperature chart svg
-const tChart = d3.select("#temperature-chart-container")
+const tChart = d3.select("#temperature-chart")
 .attr("width", 500)
 .attr("height", 450);
 
