@@ -1,4 +1,4 @@
-const width = 400, height = 400, margin = 50, ambientP = 14.7;
+const width = 500, height = 400, margin = 75, ambientP = 14.7;
 
 console.log("Script loaded!");
 
@@ -114,27 +114,157 @@ d3.csv("brayton_cycle.csv").then(function(data) {
   console.log("yTS domain:", yTS.domain());
 
   //append axes to P-v plot
-  svgPV.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xPV));
+  svgPV.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xPV).ticks(0,"~s"));
   svgPV.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yPV).ticks(4, "~s"));
 
+  // P-v Title
+  svgPV.append("text")
+    .attr("x", width / 2)
+    .attr("y", 40)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Pressure vs. Volume")
+    .style("font-size","20px");
+
+  // P-v X Axis Label
+  svgPV.append("text")
+    .attr("x", width / 2)
+    .attr("y", height - 50)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Volume")
+    .style("font-size","14px");
+
+  // P-v Y Axis Label
+  svgPV.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -height / 2)
+    .attr("y", 30)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Pressure (psi)")
+    .style("font-size","14px"); 
+
   //append axes to T-s plot
-  svgTS.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xTS));
+  svgTS.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xTS).ticks(0, "~s"));
   svgTS.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yTS).ticks(5, "~s"));
+
+  // T-s Title
+  svgTS.append("text")
+    .attr("x", width / 2)
+    .attr("y", 40)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Temperature vs. Entropy")
+    .style("font-size","20px");
+
+  // T-s X Axis Label
+  svgTS.append("text")
+    .attr("x", width / 2)
+    .attr("y", height - 50)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Entropy")
+    .style("font-size","14px");
+
+  // T-s Y Axis Label
+  svgTS.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -height / 2)
+    .attr("y", 30)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Temperature (Rankine)")
+    .style("font-size","14px"); 
 
   //append axes to etaComp plot
   svgEC.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xEC));
   svgEC.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yEC));
 
+  // EC Title
+  svgEC.append("text")
+    .attr("x", width / 2)
+    .attr("y", 40)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Compressor Efficiency vs. Flight Cycles")
+    .style("font-size","20px");
+
+  // EC X Axis Label
+  svgEC.append("text")
+    .attr("x", width / 2)
+    .attr("y", height - 40)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Flight Cycles")
+    .style("font-size","14px");
+
+  // EC Y Axis Label
+  svgEC.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -height / 2)
+    .attr("y", 30)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Efficiency")
+    .style("font-size","14px"); 
+
+  // EC "Click Simulation" prompt
+  const promptEC = svgEC.append("g").append("text")
+    .attr("x", width / 2)
+    .attr("y", height /2)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Click 'Run Simulation' to run engine to failure")
+    .style("font-size","14px");
+
   //append axes to etaComp plot
   svgET.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xET));
   svgET.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yET));
 
+  // ET Title
+  svgET.append("text")
+    .attr("x", width / 2)
+    .attr("y", 40)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Turbine Efficiency vs. Flight Cycles")
+    .style("font-size","20px");
+
+  // ET X Axis Label
+  svgET.append("text")
+    .attr("x", width / 2)
+    .attr("y", height - 40)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Flight Cycles")
+    .style("font-size","14px");
+
+  // ET Y Axis Label
+  svgET.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -height / 2)
+    .attr("y", 30)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Efficiency")
+    .style("font-size","14px");
+
+  // ET "Click Simulation" prompt
+  const promptET = svgET.append("g").append("text")
+    .attr("x", width / 2)
+    .attr("y", height /2)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Click 'Run Simulation' to run engine to failure")
+    .style("font-size","14px");
+
   //initialize annimated points and cycle counter text
   const animPtPV = svgPV.append("circle").attr("r", 5).attr("class", "animated");
   const animPtTS = svgTS.append("circle").attr("r", 5).attr("class", "animated");
-  const animPtEC = svgEC.append("circle").attr("r", 5).attr("class", "animated");
-  const animPtET = svgET.append("circle").attr("r", 5).attr("class", "animated");
-  const counterText = svgPV.append("text").attr("class", "counter").attr("x", width - margin - 50).attr("y", margin).text("Cycle: 1");
+  const animPtEC = svgEC.append("circle").attr("r", 5).attr("class", "animated").attr("opacity", 0);
+  const animPtET = svgET.append("circle").attr("r", 5).attr("class", "animated").attr("opacity", 0);
+  const counterText = d3.select("#controls").append("text").attr("class", "counter").attr("x", width - margin - 50).attr("y", margin).text("Cycle: 1");
 
   //initialize variables for lines
   const linePV = d3.line().x(d => xPV(d.V)).y(d => yPV(d.P));
@@ -180,102 +310,120 @@ d3.csv("brayton_cycle.csv").then(function(data) {
   pathPoints = buildPath(data[rowIndex]);
 
   // Add silhouette paths from first row
-    svgPV.append("path")
-    .datum(pathPoints)
-    .attr("class", "line")
-    .attr("d", linePV)
-    .attr("stroke", "gray")
-    .attr("stroke-width", 2)
-    .attr("fill", "none")
-    .attr("opacity", 0.3);
+  svgPV.append("path")
+  .datum(pathPoints)
+  .attr("class", "line")
+  .attr("d", linePV)
+  .attr("stroke", "gray")
+  .attr("stroke-width", 2)
+  .attr("fill", "none")
+  .attr("opacity", 0.3);
 
-    svgTS.append("path")
-    .datum(pathPoints)
-    .attr("class", "line")
-    .attr("d", lineTS)
-    .attr("stroke", "gray")
-    .attr("stroke-width", 2)
-    .attr("fill", "none")
-    .attr("opacity", 0.3);
+  svgTS.append("path")
+  .datum(pathPoints)
+  .attr("class", "line")
+  .attr("d", lineTS)
+  .attr("stroke", "gray")
+  .attr("stroke-width", 2)
+  .attr("fill", "none")
+  .attr("opacity", 0.3);
 
-    function animate() {
-        if (!isPaused) {
-          for (let s = 0; s < speedupFactor; s++) {
-            if (pointIndex >= pathPoints.length) {
-              // End of current path — finalize PV, TS, update EC
-              svgPV.append("path").datum(pathPoints).attr("class", "history").attr("d", linePV)
-                .transition().duration(6000).style("opacity", 0).remove();
-              svgTS.append("path").datum(pathPoints).attr("class", "history").attr("d", lineTS)
-                .transition().duration(6000).style("opacity", 0).remove();
-      
-              rowIndex++;
-              if (rowIndex >= data.length) return;
-      
-              pathPoints = buildPath(data[rowIndex]);
-              pointIndex = 0;
-              counterText.text(`Cycle: ${rowIndex + 1}`);
-      
-              etaCompTracePoints.push({
-                cycles: +data[rowIndex - 1].cycles,
-                etaComp: estimateEtaComp(+data[rowIndex - 1].p2, +data[rowIndex - 1].t2, +data[rowIndex - 1].p30, +data[rowIndex - 1].t30)
-              });
+  let isRunning = false; // Controlled by the "Run" button
 
-              etaTurbTracePoints.push({
-                cycles: +data[rowIndex - 1].cycles,
-                etaTurb: estimateEtaTurb(+data[rowIndex - 1].p30, +T_all[(rowIndex - 1) * 4 + 2], +data[rowIndex - 1].p2*+data[rowIndex - 1].epr, +data[rowIndex - 1].t50)
-              });
-            }
-      
-            // Update PV/TS lines
-            const subPoints = pathPoints.slice(0, pointIndex + 1);
-            svgPV.selectAll(".trace").remove();
-            svgPV.append("path").datum(subPoints).attr("class", "trace").attr("d", linePV)
-              .attr("stroke", "red").attr("fill", "none").attr("stroke-width", 1).attr("opacity", 0.7);
-            svgTS.selectAll(".trace").remove();
-            svgTS.append("path").datum(subPoints).attr("class", "trace").attr("d", lineTS)
-              .attr("stroke", "red").attr("fill", "none").attr("stroke-width", 1).attr("opacity", 0.7);
-      
-            // Update EC line
-            svgEC.selectAll(".trace").remove();
-            svgEC.append("path")
-              .datum(etaCompTracePoints)
-              .attr("class", "trace")
-              .attr("d", lineEC)
-              .attr("stroke", "blue")
-              .attr("fill", "none")
-              .attr("stroke-width", 2)
-              .attr("opacity", 0.7);
+  document.getElementById("runBtn").onclick = function () {
+    isRunning = true;
+    rowIndex = 1; // Start simulation at second row
+    pointIndex = 0;
+    speedupFactor = 10;
+    counterText.text(`Cycle: ${rowIndex + 1}`);
+    animPtEC.attr("opacity", 1);
+    animPtET.attr("opacity", 1);
+    promptEC.attr("opacity", 0);
+    promptET.attr("opacity", 0);
+    pathPoints = buildPath(data[rowIndex]);
+};
 
-            // Update ET line
-            svgET.selectAll(".trace").remove();
-            svgET.append("path")
-              .datum(etaTurbTracePoints)
-              .attr("class", "trace")
-              .attr("d", lineET)
-              .attr("stroke", "blue")
-              .attr("fill", "none")
-              .attr("stroke-width", 2)
-              .attr("opacity", 0.7);
-      
-            // Update points
-            const pt = pathPoints[pointIndex];
-            animPtPV.attr("cx", xPV(pt.V)).attr("cy", yPV(pt.P));
-            animPtTS.attr("cx", xTS(pt.s)).attr("cy", yTS(pt.T));
-      
-            if (etaCompTracePoints.length > 0) {
-              //etaComp Trace
-              const etaCompLastPt = etaCompTracePoints[etaCompTracePoints.length - 1];
-              animPtEC.attr("cx", xEC(etaCompLastPt.cycles)).attr("cy", yEC(etaCompLastPt.etaComp));
-              //etaTurb Trace
-              const etaTurbLastPt = etaTurbTracePoints[etaTurbTracePoints.length - 1];
-              animPtET.attr("cx", xET(etaTurbLastPt.cycles)).attr("cy", yET(etaTurbLastPt.etaTurb));
-            }
-      
-            pointIndex++;
+  function animate() {
+    if (!isPaused) {
+      for (let s = 0; s < speedupFactor; s++) {
+        if (pointIndex >= pathPoints.length) {
+          if (!isRunning) {
+            
+            pointIndex = 0;
+          } else {
+            rowIndex++;
+            if (rowIndex >= data.length) return;
+
+            pathPoints = buildPath(data[rowIndex]);
+            pointIndex = 0;
+            counterText.text(`Cycle: ${rowIndex + 1}`);
+
+            etaCompTracePoints.push({
+              cycles: +data[rowIndex - 1].cycles,
+              etaComp: estimateEtaComp(+data[rowIndex - 1].p2, +data[rowIndex - 1].t2, +data[rowIndex - 1].p30, +data[rowIndex - 1].t30)
+            });
+
+            etaTurbTracePoints.push({
+              cycles: +data[rowIndex - 1].cycles,
+              etaTurb: estimateEtaTurb(
+                +data[rowIndex - 1].p30,
+                +T_all[(rowIndex - 1) * 4 + 2],
+                +data[rowIndex - 1].p2 * +data[rowIndex - 1].epr,
+                +data[rowIndex - 1].t50
+              )
+            });
           }
         }
-        requestAnimationFrame(animate);
+
+        const subPoints = pathPoints.slice(0, pointIndex + 1);
+        svgPV.selectAll(".trace").remove();
+        svgPV.append("path").datum(subPoints).attr("class", "trace").attr("d", linePV)
+          .attr("stroke", "red").attr("fill", "none").attr("stroke-width", 1).attr("opacity", 0.7);
+
+        svgTS.selectAll(".trace").remove();
+        svgTS.append("path").datum(subPoints).attr("class", "trace").attr("d", lineTS)
+          .attr("stroke", "red").attr("fill", "none").attr("stroke-width", 1).attr("opacity", 0.7);
+
+        if (isRunning) {
+          svgEC.selectAll(".trace").remove();
+          svgEC.append("path")
+            .datum(etaCompTracePoints)
+            .attr("class", "trace")
+            .attr("d", lineEC)
+            .attr("stroke", "blue")
+            .attr("fill", "none")
+            .attr("stroke-width", 2)
+            .attr("opacity", 0.7);
+
+          svgET.selectAll(".trace").remove();
+          svgET.append("path")
+            .datum(etaTurbTracePoints)
+            .attr("class", "trace")
+            .attr("d", lineET)
+            .attr("stroke", "blue")
+            .attr("fill", "none")
+            .attr("stroke-width", 2)
+            .attr("opacity", 0.7);
+        }
+
+        // Update animated points
+        const pt = pathPoints[pointIndex];
+        animPtPV.attr("cx", xPV(pt.V)).attr("cy", yPV(pt.P));
+        animPtTS.attr("cx", xTS(pt.s)).attr("cy", yTS(pt.T));
+
+        if (isRunning && etaCompTracePoints.length > 0) {
+          const etaCompLastPt = etaCompTracePoints[etaCompTracePoints.length - 1];
+          animPtEC.attr("cx", xEC(etaCompLastPt.cycles)).attr("cy", yEC(etaCompLastPt.etaComp));
+          const etaTurbLastPt = etaTurbTracePoints[etaTurbTracePoints.length - 1];
+          animPtET.attr("cx", xET(etaTurbLastPt.cycles)).attr("cy", yET(etaTurbLastPt.etaTurb));
+        }
+
+        pointIndex++;
       }
+    }
+
+    requestAnimationFrame(animate);
+  }
 
   animate();
 });

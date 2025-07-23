@@ -18,16 +18,17 @@
 <body>
   <h1>Brayton Cycle</h1>
   <div id="chart-container-brayton">
-    <svg id="pvChart" width="400" height="400"></svg>
-    <svg id="tsChart" width="400" height="400"></svg>
+    <svg id="pvChart" width="500" height="400"></svg>
+    <svg id="tsChart" width="500" height="400"></svg>
   </div>
   <div id="chart-container-eta">
-    <svg id="ecChart" width="400" height="400"></svg>
-    <svg id="etChart" width="400" height="400"></svg>
+    <svg id="ecChart" width="500" height="400"></svg>
+    <svg id="etChart" width="500" height="400"></svg>
   </div>
   <div id="controls">
+    <button id="runBtn">Run Simulation</button>
     <button id="pauseBtn">Pause</button>
-    <label>Speed: <input type="range" id="speedSlider" min="1" max="10" value="5"></label>
+    <label>Speed: <input type="range" id="speedSlider" min="1" max="10" value="10"></label>
   </div>
 
   <script type="module" src="jss/brayton_cycle.js"></script>

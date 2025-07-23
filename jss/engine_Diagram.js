@@ -922,7 +922,7 @@ function drawTemperatureChart(coreSegments,xScale,yScale) {
     .attr("y", -10)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
-    .text("Temperature (Rankine)");  // Adjust unit as needed
+    .text("Temperature (Rankine)");  
 
   const line = d3.line()
     .x(d => xScale(d.pct))
