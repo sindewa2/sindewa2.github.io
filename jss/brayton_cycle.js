@@ -332,7 +332,7 @@ d3.csv("brayton_cycle.csv").then(function(data) {
 
   document.getElementById("runBtn").onclick = function () {
     isRunning = true;
-    rowIndex = 1; // Start simulation at second row
+    rowIndex = 1; 
     pointIndex = 0;
     speedupFactor = 10;
     counterText.text(`Cycle: ${rowIndex + 1}`);

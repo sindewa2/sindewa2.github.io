@@ -444,13 +444,27 @@ const tooltip = d3.select("#engine-tooltip");
 
 //define data associated with tooltip interaction regions
 const regions = [
-  { name: "Fan",                         x: 75,  width: 25 },
-  { name: "Low Pressure Compressor",     x: 105, width: 75 },
-  { name: "High Pressure Compressor",    x: 185, width: 55 },
-  { name: "Combustor",                   x: 255, width: 70 },
-  { name: "High Pressure Turbine",       x: 330, width: 15 },
-  { name: "Low Pressure Turbine",        x: 350, width: 30 },
-  { name: "Exhaust Nozzle",              x: 380, width: 70 }
+  { name: "Fan",
+    desc: "Turned by low pressure turbine via N1 shaft, first compression stage, generates thrust through bypass ducts",
+    x: 75,  width: 25 },
+  { name: "Low Pressure Compressor",
+    desc: "Turned by low pressure turbine via N1 shaft, first stages of core flow compression",
+    x: 105, width: 75 },
+  { name: "High Pressure Compressor",
+    desc: "Turned by high pressure turbine via N2 shaft, final stages of core flow compression",
+    x: 185, width: 55 },
+  { name: "Combustor",
+    desc: "Injects fuel into high pressure compressor outlet air and ignites it, temperature increases significantly",
+    x: 255, width: 70 },
+  { name: "High Pressure Turbine",
+    desc: "Turns the high pressure compressor via N2 shaft, first stages of core flow expansion",
+    x: 330, width: 15 },
+  { name: "Low Pressure Turbine",
+    desc: "Turns the low pressure compressor and fan via N1 shaft, final stages of core flow expansion",
+    x: 350, width: 30 },
+  { name: "Exhaust Nozzle",
+    desc: "Core flow exits thorugh exhaust nozzle completing Brayton cycle",
+    x: 380, width: 70 }
 ];
 
 // Create a group to hold interaction hitboxes
@@ -469,7 +483,8 @@ regions.forEach(region => {
       tooltip
         .style("display", "block")
         .style("opacity", 1)
-        .html(`<strong>${d.name} Section</strong>`);
+        .html(`<strong>${d.name} Section</strong>
+               <p>${d.desc}</p>`);
     })
     .on("mousemove", (event) => {
       tooltip
