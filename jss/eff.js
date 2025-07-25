@@ -1,10 +1,14 @@
-const margin = 75;
+const margin = 85;
+const marginpt5 = margin / 2;
 const width = 1100 - margin * 2;
-const height = 400 - margin * 2;
+const height = 600 - margin * 2;
 
 const svgEC = d3.select("#cChart")
   .attr("width", 1100)
-  .attr("height", 400);
+  .attr("height", 600);
+
+const ecChartGroup = svgEC.append("g")
+.attr("transform", "translate(50, 0)");
 
 const tooltip = d3.select("body")
   .append("div")
@@ -41,7 +45,7 @@ d3.csv("efficiencies.csv").then(function(data) {
     .y(d => yScale(+d.etaC));
 
   const chartGroup = svgEC.append("g")
-    .attr("transform", `translate(${margin}, ${margin})`);
+    .attr("transform", `translate(${margin}, ${marginpt5})`);
 
   console.log(Array.from(groupedData));
 
@@ -123,7 +127,79 @@ d3.csv("efficiencies.csv").then(function(data) {
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Compressor Efficiency")
-    .style("font-size","14px"); 
+    .style("font-size","14px");
+
+  let isFixed = false;
+let yLineValue = null;
+
+const hoverLine = chartGroup.append("line")
+  .attr("class", "hover-line")
+  .attr("x1", 0)
+  .attr("x2", width)
+  .attr("y1", 0)
+  .attr("y2", 0)
+  .attr("stroke", "black")
+  .attr("stroke-width", 1)
+  .attr("opacity", 0)
+  .style("pointer-events", "none");
+
+svgEC.on("mousemove", function(event) {
+  if (isFixed) return; // Skip hover if fixed
+
+  const [mouseX, mouseY] = d3.pointer(event, chartGroup.node());
+  const yVal = yScale.invert(mouseY);
+
+  hoverLine
+    .attr("y1", mouseY)
+    .attr("y2", mouseY)
+    .attr("opacity", 0.3);
+
+  // Optional: store for tooltip or display
+  yLineValue = yVal;
+});
+
+svgEC.on("click", function(event) {
+  const [mouseX, mouseY] = d3.pointer(event, chartGroup.node());
+  const yVal = yScale.invert(mouseY);
+  isFixed = true;
+  yLineValue = yVal;
+
+  hoverLine
+    .attr("y1", mouseY)
+    .attr("y2", mouseY)
+    .attr("opacity", 1);
+
+  chartGroup.selectAll(".offset-label").remove(); // Clear old labels
+
+  groupedData.forEach((points, unit_id) => {
+    const sorted = points.sort((a, b) => +a.cycles - +b.cycles);
+
+    // Find first cycle where etaC drops below yLineValue
+    const firstBelow = sorted.find(p => +p.etaC <= yLineValue);
+    const last = sorted[sorted.length - 1];
+
+    if (firstBelow) {
+      const offset = last.cycles - firstBelow.cycles;
+
+      chartGroup.append("text")
+        .attr("class", "offset-label")
+        .attr("x", xScale(+last.cycles) + 5)
+        .attr("y", yScale(+last.etaC))
+        .attr("fill", "black")
+        .attr("font-size", "10px")
+        .text(`${offset} cycles`);
+    }
+  });
+
+  });
+
+// Optional: Reset on double-click
+svgEC.on("dblclick", function() {
+  isFixed = false;
+  yLineValue = null;
+  hoverLine.attr("opacity", 0);
+  chartGroup.selectAll(".offset-label").remove();
+});
 });
 
 function kalmanFilter(data, key, R = 0.5, Q = 0.001) {

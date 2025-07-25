@@ -7,10 +7,10 @@ html, body {
 }
 
 #main-title{
-  margin-left: 40px;
+  margin-left: 20px;
 }
 
-#scene1-title, #scene2-title, #scene3-title, #controls{
+#scene1-title, #scene1-desc, #scene2-title, #scene2-desc, #scene3-title, #scene3-desc, #controls{
   margin-left: 40px;
 }
 
@@ -24,12 +24,12 @@ html, body {
   font-size: 14px;
   z-index: 9999;
   white-space: nowrap;
-  display: none; /* Start hidden */
+  display: none;
 }
 
 #engine-diagram {
   display: block;
-  overflow: visible; /* important for D3 sometimes */
+  overflow: visible;
 }
 
 #chart-container { display: flex; flex-direction: row; }

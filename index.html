@@ -7,43 +7,52 @@
 </head>
 <body>
   <h1 id="main-title">Turbofan Engine Health Management</h1>
-  <h2 id="scene1-title">Engine Operation</h2>
-  
+  <!-- <h2 id="scene1-title">Engine Operation</h2> -->
+  <h3 id="scene1-desc">A turbofan jet engine works by ingesting air, compressing it, combusting it, and exhausting through a turbine which spins the fan that generates thrust. Push the throttle up to see it in action!</h3>
   <div id="main-layout" style="display: flex; align-items: center; gap: 40px;">
     <svg id="engine-diagram"></svg>
     <div id="throttle-container"></div>
-    <div><ul>
-        <li>Engines turn</li>
-        <li>or</li>
-        <li>People Swim</li>
+    <div>
+      <p>Engine Sections</p>
+      <ul>
+        <li>Fan Section</li>
+        <li>Low Pressure Compressor</li>
+        <li>High Pressure Compressor</li>
+        <li>Combustor</li>
+        <li>High Pressure Turbine</li>
+        <li>Low Pressure Turbine</li>
+        <li>Exhaust Nozzle</li>
       </ul>
     </div>
   </div>
   
-  <div id="core-flow-charts" style="margin-top: 30px; display: flex; align-items: center; gap: 40px;">
+  <div id="core-flow-charts" style="margin-right: 10px; margin-top: 30px; align-items: center;">
     <svg id="pressure-chart"></svg>
     <svg id="temperature-chart"></svg>
   </div>
 
-  <h2 id="scene2-title">Brayton Cycle</h2>
+  <!-- <h2 id="scene2-title">Brayton Cycle</h2> -->
+  <h3 id="scene2-desc">The pressures and temperatures along the core flow path are governed by a thermodynamics process called the Brayton Cycle which relates pressure to volume and temperature to entropy. The Brayton Cycle is used to define efficiency values for the compressor and turbine sections. </h3>
   <div id="chart-container-brayton">
-    <svg id="pvChart" width="500" height="400"></svg>
-    <svg id="tsChart" width="500" height="400"></svg>
+    <svg id="pvChart"></svg>
+    <svg id="tsChart"></svg>
   </div>
+  <h3 id="scene3-desc"></h3>
   <div id="chart-container-eta">
-    <svg id="ecChart" width="500" height="400"></svg>
-    <svg id="etChart" width="500" height="400"></svg>
+    <svg id="ecChart"></svg>
+    <svg id="etChart"></svg>
   </div>
-  <div id="controls">
-    <button id="runBtn">Run Simulation</button>
+  <div id="controls" style="display: flex; align-items: center; gap: 1rem; height: 40px;">
+    <label><strong>Run-to-failure simulation controls: </strong><button id="runBtn">Run Simulation</button></label>
     <button id="pauseBtn">Pause</button>
-    <label>Speed: <input type="range" id="speedSlider" min="1" max="10" value="10"></label>
+    <label><strong>Speed: </strong><input type="range" id="speedSlider" style="align-items: center;" min="1" max="10" value="10"></label>
   </div>
 
-  <h2 id="scene3-title">Engine Compressor Efficiency</h2>
+  <!-- <h2 id="scene3-title">Engine Compressor Efficiency</h2> -->
+  <h3 id="scene3-desc">The raw efficiency calculations in the simulation are noisy but can be cleaned up using a Kalman Filter technique. The filtered compressor efficiencies are plotted below for 10 different engines. Try selecting threshold to proactively address the compressor degradation.</h3>
   <div id="chart-container-efficiency">
-    <svg id="cChart" width="400" height="400"></svg>
-    <svg id="tChart" width="400" height="400"></svg>
+    <svg id="cChart"></svg>
+    <svg id="tChart"></svg>
   </div>
 
   <div id="engine-tooltip"></div>

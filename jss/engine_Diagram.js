@@ -15,10 +15,10 @@ import {
 //store selected engine diagram in constant variable svg
 const svg = d3.select("#engine-diagram")
   .attr("width", 500)
-  .attr("height", 400);
+  .attr("height", 250);
 
 //set horizontal centerline variable 
-const centerY = 200;
+const centerY = 125;
 
 //append engineGroup to the selected svg
 const engineGroup = svg.append("g")
@@ -173,7 +173,7 @@ lptGroup.append("line")
 
 //draw the exhaust nozzle
 n1Group.append("path")
-  .attr("d", "M 378,185 L 450,200 L 380,215 Z")
+  .attr("d", "M 380,110 L 450,125 L 380,140 Z")
   .attr("fill", "#444")        
   .attr("stroke", "none")      
   .attr("stroke-width", 2);
@@ -568,7 +568,7 @@ const tMargin = pMargin;
 //select pressure chart svg
 const pChart = d3.select("#pressure-chart")
 .attr("width", 500)
-.attr("height", 450);
+.attr("height", 400);
 
 //create group in pChart
 const pChartGroup = pChart.append("g")
@@ -577,7 +577,7 @@ const pChartGroup = pChart.append("g")
 //select temperature chart svg
 const tChart = d3.select("#temperature-chart")
 .attr("width", 500)
-.attr("height", 450);
+.attr("height", 400);
 
 //create group in tChart
 const tChartGroup = tChart.append("g")
@@ -867,7 +867,8 @@ function drawPressureChart(coreSegments,xScale,yScale) {
     .attr("y", 15)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
-    .text("Pressure Along Core Flow Path");
+    .text("Pressure Along Core Flow Path")
+    .style("font-size","18px");
   
   // X Axis Label
   pChartGroup.append("text")
@@ -875,7 +876,8 @@ function drawPressureChart(coreSegments,xScale,yScale) {
     .attr("y", pChartHeight - 10)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
-    .text("Core Flow Path");
+    .text("Core Flow Path")
+    .style("font-size","14px");
 
   // Y Axis Label
   pChartGroup.append("text")
@@ -884,7 +886,8 @@ function drawPressureChart(coreSegments,xScale,yScale) {
     .attr("y", 0)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
-    .text("Pressure (psi)");  // Adjust unit as needed
+    .text("Pressure (psi)")
+    .style("font-size","14px");
 
   const line = d3.line()
     .x(d => xScale(d.pct))
@@ -920,7 +923,8 @@ function drawTemperatureChart(coreSegments,xScale,yScale) {
     .attr("y", 15)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
-    .text("Temperature Along Core Flow Path");
+    .text("Temperature Along Core Flow Path")
+    .style("font-size","18px");
 
   // X Axis Label
   tChartGroup.append("text")
@@ -928,7 +932,8 @@ function drawTemperatureChart(coreSegments,xScale,yScale) {
     .attr("y", tChartHeight - 10)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
-    .text("Core Flow Path");
+    .text("Core Flow Path")
+    .style("font-size","14px");
 
   // Y Axis Label
   tChartGroup.append("text")
@@ -937,7 +942,8 @@ function drawTemperatureChart(coreSegments,xScale,yScale) {
     .attr("y", -10)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
-    .text("Temperature (Rankine)");  
+    .text("Temperature (Rankine)")
+    .style("font-size","14px");
 
   const line = d3.line()
     .x(d => xScale(d.pct))

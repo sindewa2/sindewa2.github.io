@@ -1,4 +1,6 @@
-const width = 500, height = 400, margin = 75, ambientP = 14.7;
+const width = 450, height = 400, ambientP = 14.7;
+
+const margin = { top: 20, right: 0, bottom: 30, left: 40 };
 
 console.log("Script loaded!");
 
@@ -88,129 +90,160 @@ d3.csv("brayton_cycle.csv").then(function(data) {
     etaTurb_all.push(etaTurb);
   });
 
+  /*const pXScale = d3.scaleLinear()
+    .domain([0, 1])
+    .range([pMargin.left, pChartWidth - pMargin.right]);
+
+  const pYScale = d3.scaleLinear()
+    .domain([0, 1.1*d3.max(coreSegments, d => d.pressure)])
+    .range([pChartHeight - pMargin.bottom, pMargin.top]);*/
+
   //set x and y scales for P-v diagram
-  const xPV = d3.scaleLinear().domain(d3.extent(V_all)).range([margin, width - margin]);
-  const yPV = d3.scaleLinear().domain([10,560]).range([height - margin, margin]);
+  const xPV = d3.scaleLinear().domain(d3.extent(V_all)).range([margin.left, width - margin.right]);
+  const yPV = d3.scaleLinear().domain([10,610]).range([height - margin.bottom, margin.top]);
 
   //set x and y scales for T-s diagram
-  const xTS = d3.scaleLinear().domain([0.9, 2.1]).range([margin, width - margin]);
-  const yTS = d3.scaleLinear().domain([450,3200]).range([height - margin, margin]);
+  const xTS = d3.scaleLinear().domain([0.9, 2.1]).range([margin.left, width - margin.right]);
+  const yTS = d3.scaleLinear().domain([450,3200]).range([height - margin.bottom, margin.top]);
 
   //set x and y scales for etaComp diagram
-  const xEC = d3.scaleLinear().domain(d3.extent(cycles_all)).range([margin, width - margin]);
-  const yEC = d3.scaleLinear().domain(d3.extent(etaComp_all)).range([height - margin, margin]); 
+  const xEC = d3.scaleLinear().domain(d3.extent(cycles_all)).range([margin.left, width - margin.right]);
+  const yEC = d3.scaleLinear().domain(d3.extent(etaComp_all)).range([height - margin.bottom, margin.top]); 
   
   //set x and y scales for etaTurb diagram
-  const xET = d3.scaleLinear().domain(d3.extent(cycles_all)).range([margin, width - margin]);
-  const yET = d3.scaleLinear().domain(d3.extent(etaTurb_all)).range([height - margin, margin]);
+  const xET = d3.scaleLinear().domain(d3.extent(cycles_all)).range([margin.left, width - margin.right]);
+  const yET = d3.scaleLinear().domain(d3.extent(etaTurb_all)).range([height - margin.bottom, margin.top]);
 
   //save the selection function for the charts in a variable for brevity in following code
-  const svgPV = d3.select("#pvChart");
-  const svgTS = d3.select("#tsChart");
-  const svgEC = d3.select("#ecChart");
-  const svgET = d3.select("#etChart");
+  const svgPV = d3.select("#pvChart")
+    .attr("width", 500)
+    .attr("height", 400);
+
+  const pvChartGroup = svgPV.append("g")
+  .attr("transform", "translate(50, 0)");
+
+  const svgTS = d3.select("#tsChart")
+    .attr("width", 500)
+    .attr("height", 400);
+
+  const tsChartGroup = svgTS.append("g")
+  .attr("transform", "translate(50, 0)");
+
+  const svgEC = d3.select("#ecChart")
+    .attr("width", 500)
+    .attr("height", 420);
+
+  const ecChartGroup = svgEC.append("g")
+  .attr("transform", "translate(50, 0)");
+
+  const svgET = d3.select("#etChart")
+    .attr("width", 500)
+    .attr("height", 420);
+
+  const etChartGroup = svgET.append("g")
+  .attr("transform", "translate(50, 0)");
 
   console.log("yPV domain:", yPV.domain());
   console.log("yTS domain:", yTS.domain());
 
   //append axes to P-v plot
-  svgPV.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xPV).ticks(0,"~s"));
-  svgPV.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yPV).ticks(4, "~s"));
+  pvChartGroup.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(xPV).ticks(0,"~s"));
+  pvChartGroup.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(yPV).ticks(4, "~s"));
 
   // P-v Title
-  svgPV.append("text")
+  pvChartGroup.append("text")
     .attr("x", width / 2)
-    .attr("y", 40)
+    .attr("y", 15)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Pressure vs. Volume")
     .style("font-size","20px");
 
   // P-v X Axis Label
-  svgPV.append("text")
+  pvChartGroup.append("text")
     .attr("x", width / 2)
-    .attr("y", height - 50)
+    .attr("y", height - 10)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Volume")
     .style("font-size","14px");
 
   // P-v Y Axis Label
-  svgPV.append("text")
+  pvChartGroup.append("text")
     .attr("transform", "rotate(-90)")
     .attr("x", -height / 2)
-    .attr("y", 30)
+    .attr("y", -10)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Pressure (psi)")
     .style("font-size","14px"); 
 
   //append axes to T-s plot
-  svgTS.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xTS).ticks(0, "~s"));
-  svgTS.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yTS).ticks(5, "~s"));
+  tsChartGroup.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(xTS).ticks(0, "~s"));
+  tsChartGroup.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(yTS).ticks(5));
 
   // T-s Title
-  svgTS.append("text")
+  tsChartGroup.append("text")
     .attr("x", width / 2)
-    .attr("y", 40)
+    .attr("y", 15)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Temperature vs. Entropy")
     .style("font-size","20px");
 
   // T-s X Axis Label
-  svgTS.append("text")
+  tsChartGroup.append("text")
     .attr("x", width / 2)
-    .attr("y", height - 50)
+    .attr("y", height - 10)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Entropy")
     .style("font-size","14px");
 
   // T-s Y Axis Label
-  svgTS.append("text")
+  tsChartGroup.append("text")
     .attr("transform", "rotate(-90)")
     .attr("x", -height / 2)
-    .attr("y", 30)
+    .attr("y", -10)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Temperature (Rankine)")
     .style("font-size","14px"); 
 
   //append axes to etaComp plot
-  svgEC.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xEC));
-  svgEC.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yEC));
+  ecChartGroup.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(xEC));
+  ecChartGroup.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(yEC));
 
   // EC Title
-  svgEC.append("text")
+  ecChartGroup.append("text")
     .attr("x", width / 2)
-    .attr("y", 40)
+    .attr("y", 15)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Compressor Efficiency vs. Flight Cycles")
     .style("font-size","20px");
 
   // EC X Axis Label
-  svgEC.append("text")
+  ecChartGroup.append("text")
     .attr("x", width / 2)
-    .attr("y", height - 40)
+    .attr("y", height + 10)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Flight Cycles")
     .style("font-size","14px");
 
   // EC Y Axis Label
-  svgEC.append("text")
+  ecChartGroup.append("text")
     .attr("transform", "rotate(-90)")
     .attr("x", -height / 2)
-    .attr("y", 30)
+    .attr("y", -10)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Efficiency")
     .style("font-size","14px"); 
 
   // EC "Click Simulation" prompt
-  const promptEC = svgEC.append("g").append("text")
+  const promptEC = ecChartGroup.append("g").append("text")
     .attr("x", width / 2)
     .attr("y", height /2)
     .attr("text-anchor", "middle")
@@ -219,39 +252,39 @@ d3.csv("brayton_cycle.csv").then(function(data) {
     .style("font-size","14px");
 
   //append axes to etaComp plot
-  svgET.append("g").attr("transform", `translate(0,${height - margin})`).call(d3.axisBottom(xET));
-  svgET.append("g").attr("transform", `translate(${margin},0)`).call(d3.axisLeft(yET));
+  etChartGroup.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(xET));
+  etChartGroup.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(yET));
 
   // ET Title
-  svgET.append("text")
+  etChartGroup.append("text")
     .attr("x", width / 2)
-    .attr("y", 40)
+    .attr("y", 15)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Turbine Efficiency vs. Flight Cycles")
     .style("font-size","20px");
 
   // ET X Axis Label
-  svgET.append("text")
+  etChartGroup.append("text")
     .attr("x", width / 2)
-    .attr("y", height - 40)
+    .attr("y", height + 10)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Flight Cycles")
     .style("font-size","14px");
 
   // ET Y Axis Label
-  svgET.append("text")
+  etChartGroup.append("text")
     .attr("transform", "rotate(-90)")
     .attr("x", -height / 2)
-    .attr("y", 30)
+    .attr("y", -10)
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Efficiency")
     .style("font-size","14px");
 
   // ET "Click Simulation" prompt
-  const promptET = svgET.append("g").append("text")
+  const promptET = etChartGroup.append("g").append("text")
     .attr("x", width / 2)
     .attr("y", height /2)
     .attr("text-anchor", "middle")
@@ -260,11 +293,11 @@ d3.csv("brayton_cycle.csv").then(function(data) {
     .style("font-size","14px");
 
   //initialize annimated points and cycle counter text
-  const animPtPV = svgPV.append("circle").attr("r", 5).attr("class", "animated");
-  const animPtTS = svgTS.append("circle").attr("r", 5).attr("class", "animated");
-  const animPtEC = svgEC.append("circle").attr("r", 5).attr("class", "animated").attr("opacity", 0);
-  const animPtET = svgET.append("circle").attr("r", 5).attr("class", "animated").attr("opacity", 0);
-  const counterText = d3.select("#controls").append("text").attr("class", "counter").attr("x", width - margin - 50).attr("y", margin).text("Cycle: 1");
+  const animPtPV = pvChartGroup.append("circle").attr("r", 5).attr("class", "animated");
+  const animPtTS = tsChartGroup.append("circle").attr("r", 5).attr("class", "animated");
+  const animPtEC = ecChartGroup.append("circle").attr("r", 5).attr("class", "animated").attr("opacity", 0);
+  const animPtET = etChartGroup.append("circle").attr("r", 5).attr("class", "animated").attr("opacity", 0);
+  const counterText = d3.select("#controls").append("text").attr("class", "counter").attr("x", width - margin.left - 50).attr("y", margin.left).text("Cycle: 1");
 
   //initialize variables for lines
   const linePV = d3.line().x(d => xPV(d.V)).y(d => yPV(d.P));
@@ -310,7 +343,7 @@ d3.csv("brayton_cycle.csv").then(function(data) {
   pathPoints = buildPath(data[rowIndex]);
 
   // Add silhouette paths from first row
-  svgPV.append("path")
+  pvChartGroup.append("path")
   .datum(pathPoints)
   .attr("class", "line")
   .attr("d", linePV)
@@ -319,7 +352,7 @@ d3.csv("brayton_cycle.csv").then(function(data) {
   .attr("fill", "none")
   .attr("opacity", 0.3);
 
-  svgTS.append("path")
+  tsChartGroup.append("path")
   .datum(pathPoints)
   .attr("class", "line")
   .attr("d", lineTS)
@@ -376,17 +409,17 @@ d3.csv("brayton_cycle.csv").then(function(data) {
         }
 
         const subPoints = pathPoints.slice(0, pointIndex + 1);
-        svgPV.selectAll(".trace").remove();
-        svgPV.append("path").datum(subPoints).attr("class", "trace").attr("d", linePV)
+        pvChartGroup.selectAll(".trace").remove();
+        pvChartGroup.append("path").datum(subPoints).attr("class", "trace").attr("d", linePV)
           .attr("stroke", "red").attr("fill", "none").attr("stroke-width", 1).attr("opacity", 0.7);
 
-        svgTS.selectAll(".trace").remove();
-        svgTS.append("path").datum(subPoints).attr("class", "trace").attr("d", lineTS)
+        tsChartGroup.selectAll(".trace").remove();
+        tsChartGroup.append("path").datum(subPoints).attr("class", "trace").attr("d", lineTS)
           .attr("stroke", "red").attr("fill", "none").attr("stroke-width", 1).attr("opacity", 0.7);
 
         if (isRunning) {
-          svgEC.selectAll(".trace").remove();
-          svgEC.append("path")
+          ecChartGroup.selectAll(".trace").remove();
+          ecChartGroup.append("path")
             .datum(etaCompTracePoints)
             .attr("class", "trace")
             .attr("d", lineEC)
@@ -395,8 +428,8 @@ d3.csv("brayton_cycle.csv").then(function(data) {
             .attr("stroke-width", 2)
             .attr("opacity", 0.7);
 
-          svgET.selectAll(".trace").remove();
-          svgET.append("path")
+          etChartGroup.selectAll(".trace").remove();
+          etChartGroup.append("path")
             .datum(etaTurbTracePoints)
             .attr("class", "trace")
             .attr("d", lineET)
