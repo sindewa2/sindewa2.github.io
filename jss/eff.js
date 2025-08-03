@@ -143,6 +143,15 @@ const hoverLine = chartGroup.append("line")
   .attr("opacity", 0)
   .style("pointer-events", "none");
 
+const hoverLineLabel = chartGroup.append("text")
+  .attr("x", width*0.1)
+  .attr("y", 0)
+  .attr("text-anchor", "middle")
+  .attr("fill", "#000")
+  .attr("opacity", 0)
+  .text("Click to set threshold")
+  .style("font-size","10px");
+
 svgEC.on("mousemove", function(event) {
   if (isFixed) return; // Skip hover if fixed
 
@@ -152,6 +161,10 @@ svgEC.on("mousemove", function(event) {
   hoverLine
     .attr("y1", mouseY)
     .attr("y2", mouseY)
+    .attr("opacity", 0.3);
+  
+  hoverLineLabel
+    .attr("y", mouseY-10)
     .attr("opacity", 0.3);
 
   // Optional: store for tooltip or display
@@ -168,6 +181,11 @@ svgEC.on("click", function(event) {
     .attr("y1", mouseY)
     .attr("y2", mouseY)
     .attr("opacity", 1);
+  
+  hoverLineLabel
+    .attr("y", mouseY-10)
+    .attr("opacity", 1)
+    .text("Double-click to remove threshold");
 
   chartGroup.selectAll(".offset-label").remove(); // Clear old labels
 
@@ -198,6 +216,9 @@ svgEC.on("dblclick", function() {
   isFixed = false;
   yLineValue = null;
   hoverLine.attr("opacity", 0);
+  hoverLineLabel
+    .attr("opacity",0)
+    .text("Click to set threshold");
   chartGroup.selectAll(".offset-label").remove();
 });
 });

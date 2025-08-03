@@ -12,6 +12,7 @@ html, body {
 
 #scene1-title, #scene1-desc, #scene2-title, #scene2-desc, #scene3-title, #scene3-desc, #controls{
   margin-left: 40px;
+  width: 1050px;
 }
 
 #engine-tooltip {

@@ -176,7 +176,44 @@ d3.csv("brayton_cycle.csv").then(function(data) {
     .attr("text-anchor", "middle")
     .attr("fill", "#000")
     .text("Pressure (psi)")
-    .style("font-size","14px"); 
+    .style("font-size","14px");
+
+  // P-v Fan Outlet Label
+  pvChartGroup.append("text")
+    .attr("x", width*0.35)
+    .attr("y", height*0.85)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Fan Outlet")
+    .style("font-size","10px");
+
+  // P-v HPC Outlet Label
+  pvChartGroup.append("text")
+    .attr("x", width*0.16)
+    .attr("y", height*0.12)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("HPC Outlet")
+    .style("font-size","10px");
+
+  // P-v Combustor Outlet Label
+  pvChartGroup.append("text")
+    .attr("x", width*0.75)
+    .attr("y", height*0.12)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Combustor Outlet")
+    .style("font-size","10px");
+  
+  // P-v Turbine Outlet Label
+  pvChartGroup.append("text")
+    .attr("x", width*0.925)
+    .attr("y", height*0.85)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("LPT Outlet")
+    .style("font-size","10px");
+
 
   //append axes to T-s plot
   tsChartGroup.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(xTS).ticks(0, "~s"));
@@ -209,6 +246,42 @@ d3.csv("brayton_cycle.csv").then(function(data) {
     .attr("fill", "#000")
     .text("Temperature (Rankine)")
     .style("font-size","14px"); 
+
+  // T-s Fan Outlet Label
+  tsChartGroup.append("text")
+    .attr("x", width*0.23)
+    .attr("y", height*0.85)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Fan Outlet")
+    .style("font-size","10px");
+
+  // T-s HPC Outlet Label
+  tsChartGroup.append("text")
+    .attr("x", width*0.23)
+    .attr("y", height*0.6)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("HPC Outlet")
+    .style("font-size","10px");
+
+  // T-s Combustor Outlet Label
+  tsChartGroup.append("text")
+    .attr("x", width*0.825)
+    .attr("y", height*0.12)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("Combustor Outlet")
+    .style("font-size","10px");
+  
+  // T-s Turbine Outlet Label
+  tsChartGroup.append("text")
+    .attr("x", width*0.85)
+    .attr("y", height*0.6)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#000")
+    .text("LPT Outlet")
+    .style("font-size","10px");
 
   //append axes to etaComp plot
   ecChartGroup.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(xEC));
@@ -374,7 +447,7 @@ d3.csv("brayton_cycle.csv").then(function(data) {
     promptEC.attr("opacity", 0);
     promptET.attr("opacity", 0);
     pathPoints = buildPath(data[rowIndex]);
-};
+  };
 
   function animate() {
     if (!isPaused) {
@@ -385,6 +458,62 @@ d3.csv("brayton_cycle.csv").then(function(data) {
             pointIndex = 0;
           } else {
             rowIndex++;
+
+            if (rowIndex > 191){
+              // P-v HPC Degradation Description Label
+              pvChartGroup.append("text")
+                .attr("x", width*0.4)
+                .attr("y", height*0.2)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#000")
+                .text("Degraded HPC lowers outlet pressure")
+                .style("font-size","10px");
+
+              // T-s HPC Degradation Description Label Line 1
+              tsChartGroup.append("text")
+                .attr("x", width*0.35)
+                .attr("y", height*0.3)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#000")
+                .text("Thermal energy not efficiently converted to")
+                .style("font-size","10px");
+              // T-s HPC Degradation Description Label Line 2
+              tsChartGroup.append("text")
+                .attr("x", width*0.352)
+                .attr("y", height*0.325)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#000")
+                .text("pressure now causes engine to burn hotter")
+                .style("font-size","10px");
+
+              // EC degradation label
+              ecChartGroup.append("text")
+                .attr("x", width*0.425)
+                .attr("y", height*0.8)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#000")
+                .text("Compressor efficiency degrades due to thermal energy waste")
+                .style("font-size","10px");
+              
+              // ET degradation label line 1
+              etChartGroup.append("text")
+                .attr("x", width*0.35)
+                .attr("y", height*0.8)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#000")
+                .text("Turbine efficiency affected by compressor since")
+                .style("font-size","10px");
+              
+              // ET degradation label line 2
+              etChartGroup.append("text")
+                .attr("x", width*0.338)
+                .attr("y", height*0.825)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#000")
+                .text("it is downstream and coupled via engine shafts")
+                .style("font-size","10px");
+            }
+
             if (rowIndex >= data.length) return;
 
             pathPoints = buildPath(data[rowIndex]);
